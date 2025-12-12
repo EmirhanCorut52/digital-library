@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dijital Kütüphane</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>📚 Dijital Kütüphane</h1>
+        <nav id="nav-menu" style="display: none;">
+            <button onclick="cikisYap()">Çıkış Yap</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="login-section">
+            <h2>Giriş Yap</h2>
+            <form id="login-form">
+                <input type="email" id="email" placeholder="E-posta Adresi" required>
+                <input type="password" id="password" placeholder="Şifre" required>
+                <button type="submit">Giriş Yap</button>
+            </form>
+            <p id="error-message" style="color: red;"></p>
+        </section>
+
+        <section id="dashboard-section" style="display: none;">
+            <h2>👋 Hoşgeldin, <span id="kullanici-adi"></span></h2>
+            
+            <div class="new-post">
+                <textarea id="post-text" placeholder="Ne okuyorsun? Düşüncelerini paylaş..."></textarea>
+                <button onclick="gonderiPaylas()">Paylaş</button>
+            </div>
+
+            <h3>Sosyal Akış</h3>
+            <div id="feed-container">
+                <p>Yükleniyor...</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
