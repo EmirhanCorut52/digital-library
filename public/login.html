@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giriş Yap - Dijital Kütüphane</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="js/main.js"></script>
+  </head>
+
+  <body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div
+      class="bg-white rounded-2xl shadow-2xl flex max-w-4xl w-full overflow-hidden"
+    >
+      <div
+        class="w-1/2 bg-blue-600 text-white p-12 flex flex-col justify-between hidden md:flex"
+      >
+        <div>
+          <h2 class="text-3xl font-bold mb-4">Dijital Kütüphane</h2>
+          <p class="opacity-90">
+            Kitapları keşfet, yorumla ve okuma topluluğunun bir parçası ol.
+          </p>
+        </div>
+        <div class="text-center">
+          <i class="fas fa-book-reader text-9xl opacity-20"></i>
+        </div>
+        <p class="text-sm opacity-70">Keşfet Paylaş Oku</p>
+      </div>
+
+      <div class="w-full md:w-1/2 p-12">
+        <div class="flex gap-6 mb-8 border-b">
+          <button
+            onclick="toggleForm('login')"
+            id="tab-login"
+            class="pb-2 border-b-2 border-blue-600 font-semibold text-blue-600 focus:outline-none"
+          >
+            Giriş Yap
+          </button>
+          <button
+            onclick="toggleForm('register')"
+            id="tab-register"
+            class="pb-2 border-b-2 border-blue-600 text-black-500 hover:text-blue-600 font-semibold text-blue-600 focus:outline-none"
+          >
+            Kayıt Ol
+          </button>
+        </div>
+
+        <form id="login-form" class="space-y-6">
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2"
+              >E-posta Adresi</label
+            >
+            <input
+              type="email"
+              class="w-full px-4 py-3 rounded-lg bg-gray-50 border focus:border-blue-500 focus:bg-white focus:outline-none"
+              placeholder="ornek@odu.edu.tr"
+            />
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2"
+              >Şifre</label
+            >
+            <input
+              type="password"
+              class="w-full px-4 py-3 rounded-lg bg-gray-50 border focus:border-blue-500 focus:bg-white focus:outline-none"
+              placeholder="********"
+            />
+            <div class="text-right mt-2">
+              <a
+                href="forgot-password.html"
+                class="text-sm text-blue-600 hover:underline"
+                >Şifremi Unuttum?</a
+              >
+            </div>
+          </div>
+          <button
+            type="button"
+            onclick="login()"
+            class="w-full block bg-blue-600 ..."
+          >
+            Giriş Yap
+          </button>
+          <script>
+            function login() {
+              const email = document.querySelector('input[type="email"]').value;
+
+              if (email.includes("admin")) {
+                window.location.href = "admin.html";
+              } else {
+                window.location.href = "index.html";
+              }
+            }
+          </script>
+        </form>
+
+        <form id="register-form" class="space-y-6 hidden">
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2"
+              >Ad Soyad</label
+            >
+            <input
+              type="text"
+              class="w-full px-4 py-3 rounded-lg bg-gray-50 border focus:border-blue-500 focus:bg-white focus:outline-none"
+              placeholder="Adınız Soyadınız"
+            />
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2"
+              >E-posta Adresi</label
+            >
+            <input
+              type="email"
+              class="w-full px-4 py-3 rounded-lg bg-gray-50 border focus:border-blue-500 focus:bg-white focus:outline-none"
+              placeholder="ornek@odu.edu.tr"
+            />
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2"
+              >Şifre</label
+            >
+            <input
+              type="password"
+              class="w-full px-4 py-3 rounded-lg bg-gray-50 border focus:border-blue-500 focus:bg-white focus:outline-none"
+              placeholder="********"
+            />
+          </div>
+          <button
+            type="button"
+            class="w-full block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+          >
+            Kayıt Ol
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function toggleForm(formType) {
+        const loginForm = document.getElementById("login-form");
+        const registerForm = document.getElementById("register-form");
+        const tabLogin = document.getElementById("tab-login");
+        const tabRegister = document.getElementById("tab-register");
+
+        if (formType === "login") {
+          loginForm.classList.remove("hidden");
+          registerForm.classList.add("hidden");
+          tabLogin.classList.add("border-blue-600", "text-blue-600");
+          tabRegister.classList.remove("border-blue-600", "text-blue-600");
+        } else {
+          loginForm.classList.add("hidden");
+          registerForm.classList.remove("hidden");
+          tabRegister.classList.add("border-blue-600", "text-blue-600");
+          tabLogin.classList.remove("border-blue-600", "text-blue-600");
+        }
+      }
+
+      async function login() {
+        const emailInput = document.querySelector(
+          '#login-form input[type="email"]'
+        );
+        const passInput = document.querySelector(
+          '#login-form input[type="password"]'
+        );
+        const btn = document.querySelector("#login-form button");
+
+        const originalText = btn.innerHTML;
+        btn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Giriş Yapılıyor...';
+        btn.disabled = true;
+
+        try {
+          const response = await fetch("http://localhost:3000/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: emailInput.value,
+              password: passInput.value,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            localStorage.setItem("token", data.token);
+            if (data.user) {
+              localStorage.setItem(
+                "user_name",
+                data.user.name || data.user.username
+              );
+              localStorage.setItem("user_id", data.user.id);
+              localStorage.setItem("role", data.user.role || "user");
+            }
+            window.location.href = "index.html";
+          } else {
+            alert("Hata: " + (data.error || data.message));
+          }
+        } catch (error) {
+          alert("Sunucuya bağlanılamadı!");
+          console.error(error);
+        } finally {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
+
+      document
+        .querySelector("#register-form button")
+        .addEventListener("click", async function () {
+          const adInput = document.querySelector(
+            '#register-form input[placeholder="Adınız Soyadınız"]'
+          );
+          const emailInput = document.querySelector(
+            '#register-form input[type="email"]'
+          );
+          const passInput = document.querySelector(
+            '#register-form input[type="password"]'
+          );
+
+          if (!adInput.value || !emailInput.value || !passInput.value) {
+            alert("Lütfen tüm alanları doldurun.");
+            return;
+          }
+
+          try {
+            const response = await fetch(
+              "http://localhost:3000/api/auth/register",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  username: adInput.value,
+                  email: emailInput.value,
+                  password: passInput.value,
+                }),
+              }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+              alert("Kayıt başarılı! Artık giriş yapabilirsiniz.");
+              toggleForm("login");
+            } else {
+              alert("Hata: " + (data.error || data.message));
+            }
+          } catch (error) {
+            console.error(error);
+            alert("Kayıt sırasında hata oluştu.");
+          }
+        });
+    </script>
+  </body>
+</html>

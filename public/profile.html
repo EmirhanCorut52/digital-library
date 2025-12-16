@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profilim - Dijital Kütüphane</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-50">
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <a
+              href="index.html"
+              class="flex items-center text-gray-800 hover:text-blue-600"
+            >
+              <i class="fas fa-book-open text-blue-600 text-2xl mr-2"></i>
+              <span class="font-bold text-xl">Dijital Kütüphane</span>
+            </a>
+          </div>
+          <div class="flex items-center gap-4">
+            <button class="text-blue-600">
+              <i class="fas fa-user-circle text-2xl"></i>
+            </button>
+            <a
+              href="#"
+              onclick="logout()"
+              class="text-red-500 hover:text-red-700"
+            >
+              <i class="fas fa-sign-out-alt text-xl"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="bg-white border-b">
+      <div class="max-w-4xl mx-auto px-4 py-8">
+        <div
+          class="flex flex-col md:flex-row items-center md:items-start gap-8"
+        >
+          <div class="relative">
+            <div
+              class="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center border-4 border-white shadow-lg"
+            >
+              <i class="fas fa-user text-5xl text-gray-400"></i>
+            </div>
+          </div>
+
+          <div class="flex-1 text-center md:text-left">
+            <div
+              class="flex flex-col md:flex-row items-center justify-between mb-4"
+            >
+              <div>
+                <h1 id="profile-name" class="text-2xl font-bold text-gray-900">
+                  Yükleniyor...
+                </h1>
+                <p id="profile-username" class="text-gray-500">@...</p>
+              </div>
+              <a
+                href="profilduzenle.html"
+                class="mt-4 md:mt-0 px-6 py-2 border border-gray-300 rounded-full font-semibold hover:bg-gray-50 transition inline-block text-gray-700"
+              >
+                <i class="fas fa-cog mr-2"></i>Profili Düzenle
+              </a>
+            </div>
+
+            <p id="profile-bio" class="text-gray-700 mb-6 max-w-2xl"></p>
+
+            <div
+              class="flex justify-center md:justify-start gap-8 border-t pt-4"
+            >
+              <div class="text-center md:text-left">
+                <span
+                  id="stat-books"
+                  class="block font-bold text-xl text-gray-900"
+                  >0</span
+                >
+                <span class="text-sm text-gray-500">Okunan Kitap</span>
+              </div>
+              <div class="text-center md:text-left">
+                <span
+                  id="stat-following"
+                  class="block font-bold text-xl text-gray-900"
+                  >0</span
+                >
+                <span class="text-sm text-gray-500">Takip Edilen</span>
+              </div>
+              <div class="text-center md:text-left">
+                <span
+                  id="stat-followers"
+                  class="block font-bold text-xl text-gray-900"
+                  >0</span
+                >
+                <span class="text-sm text-gray-500">Takipçi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 py-6">
+      <div class="flex border-b mb-6 overflow-x-auto">
+        <button
+          onclick="switchTab('posts')"
+          id="tab-posts"
+          class="px-6 py-3 border-b-2 border-blue-600 text-blue-600 font-semibold focus:outline-none whitespace-nowrap"
+        >
+          Gönderilerim (<span id="tab-count-posts">0</span>)
+        </button>
+        <button
+          onclick="switchTab('comments')"
+          id="tab-comments"
+          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
+        >
+          Kitap Yorumları (<span id="tab-count-comments">0</span>)
+        </button>
+        <button
+          onclick="switchTab('following')"
+          id="tab-following"
+          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
+        >
+          Takip Edilenler (<span id="tab-count-following">0</span>)
+        </button>
+      </div>
+
+      <div id="content-posts" class="space-y-4">
+        <p class="text-gray-500 text-center">Yükleniyor...</p>
+      </div>
+
+      <div id="content-comments" class="hidden space-y-4">
+        <p class="text-gray-500 text-center">Yükleniyor...</p>
+      </div>
+
+      <div
+        id="content-following"
+        class="hidden grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <p class="text-gray-500 text-center col-span-2">
+          Henüz kimseyi takip etmiyorsunuz.
+        </p>
+      </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+      function switchTab(tabName) {
+        document.getElementById("content-posts").classList.add("hidden");
+        document.getElementById("content-comments").classList.add("hidden");
+        document.getElementById("content-following").classList.add("hidden");
+
+        const tabs = ["posts", "comments", "following"];
+        tabs.forEach((t) => {
+          const btn = document.getElementById("tab-" + t);
+          btn.classList.remove("border-blue-600", "text-blue-600");
+          btn.classList.add("border-transparent", "text-gray-500");
+        });
+
+        document
+          .getElementById("content-" + tabName)
+          .classList.remove("hidden");
+        const activeBtn = document.getElementById("tab-" + tabName);
+        activeBtn.classList.remove("border-transparent", "text-gray-500");
+        activeBtn.classList.add("border-blue-600", "text-blue-600");
+
+        if (tabName === "comments" && !window.commentsLoaded) {
+          const userResponse = authFetch("/auth/me").then(async (res) => {
+            if (res) {
+              const user = await res.json();
+              console.log("User ID for comments:", user.user_id);
+              getUserComments(user.user_id);
+              window.commentsLoaded = true;
+            }
+          });
+        }
+        if (tabName === "following" && !window.followingLoaded) {
+          const userResponse = authFetch("/auth/me").then(async (res) => {
+            if (res) {
+              const user = await res.json();
+              getFollowing(user.user_id);
+              window.followingLoaded = true;
+            }
+          });
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const userResponse = await authFetch("/auth/me");
+          if (!userResponse) {
+            window.location.href = "login.html";
+            return;
+          }
+          const user = await userResponse.json();
+
+          document.getElementById("profile-name").innerText =
+            user.name && user.name !== "undefined" ? user.name : user.username;
+          document.getElementById("profile-username").innerText =
+            "@" + user.username;
+          document.getElementById("profile-bio").innerText =
+            user.bio && user.bio !== "undefined"
+              ? user.bio
+              : "Henüz açıklama eklenmedi.";
+
+          const profileResponse = await authFetch(
+            `/users/profile/${user.user_id}`
+          );
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            const stats = profileData.stats;
+
+            document.getElementById("stat-books").innerText = stats.books;
+            document.getElementById("stat-following").innerText =
+              stats.following;
+            document.getElementById("stat-followers").innerText =
+              stats.followers;
+            document.getElementById("tab-count-posts").innerText = stats.posts;
+            document.getElementById("tab-count-comments").innerText =
+              stats.comments;
+          }
+
+          await getUserPosts(user.user_id);
+        } catch (error) {
+          console.error("Profile loading error:", error);
+          alert("Profil bilgileri yüklenemedi.");
+          window.location.href = "login.html";
+        }
+      });
+
+      async function getUserPosts(userId) {
+        const container = document.getElementById("content-posts");
+        const countSpan = document.getElementById("tab-count-posts");
+
+        try {
+          const response = await authFetch("/posts/feed");
+          if (!response) return;
+
+          const allPosts = await response.json();
+
+          const myPosts = allPosts.filter((post) => post.user_id == userId);
+
+          countSpan.innerText = myPosts.length;
+
+          container.innerHTML = "";
+
+          if (myPosts.length === 0) {
+            container.innerHTML =
+              '<div class="text-center py-8"><i class="fas fa-pen-fancy text-4xl text-gray-200 mb-3"></i><p class="text-gray-500">Henüz hiçbir gönderi paylaşılmadı.</p></div>';
+            return;
+          }
+
+          myPosts.forEach((post) => {
+            const date = new Date(post.created_at).toLocaleDateString("tr-TR");
+
+            const username = post.User ? post.User.username : "Kullanıcı";
+            const initial = username.charAt(0).toUpperCase();
+
+            const html = `
+                <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100 relative group">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
+                      ${initial}
+                            </div>
+                            <div>
+                      <h4 class="font-bold text-sm">${username}</h4>
+                      <p class="text-xs text-gray-500">${date}</p>
+                            </div>
+                        </div>
+                  <button onclick="deletePost(${post.post_id})" class="text-gray-400 hover:text-red-500 transition p-2" title="Sil">
+                            <i class="far fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    <p class="text-gray-800 mb-3 whitespace-pre-line">${post.post_text}</p>
+                    <div class="flex items-center gap-4 text-gray-500 text-sm">
+                        <span><i class="far fa-heart mr-1"></i> 0 Beğeni</span>
+                    </div>
+                </div>
+                `;
+            container.innerHTML += html;
+          });
+        } catch (error) {
+          console.error(error);
+          container.innerHTML =
+            '<p class="text-red-500 text-center">Yüklenemedi.</p>';
+        }
+      }
+
+      async function getUserComments(userId) {
+        const container = document.getElementById("content-comments");
+
+        try {
+          const response = await authFetch(`/comments/user/${userId}`);
+          if (!response) return;
+
+          const comments = await response.json();
+
+          if (!Array.isArray(comments)) {
+            container.innerHTML =
+              '<p class="text-red-500 text-center">Yorumlar yüklenemedi.</p>';
+            return;
+          }
+
+          container.innerHTML = "";
+
+          if (comments.length === 0) {
+            container.innerHTML =
+              '<div class="text-center py-8"><i class="fas fa-comments text-4xl text-gray-200 mb-3"></i><p class="text-gray-500">Henüz yorum yapmadınız.</p></div>';
+            return;
+          }
+
+          comments.forEach((comment) => {
+            const date = new Date(comment.created_at).toLocaleDateString(
+              "tr-TR"
+            );
+            const bookTitle = comment.book_title || "Bilinmeyen Kitap";
+            const author = comment.book_author || "";
+
+            let starsHtml = "";
+            for (let i = 0; i < 5; i++) {
+              if (i < comment.rating)
+                starsHtml += '<i class="fas fa-star text-yellow-400"></i>';
+              else starsHtml += '<i class="far fa-star text-gray-300"></i>';
+            }
+
+            const html = `
+                <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center font-bold text-green-600">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="flex-1 ml-3">
+                            <h4 class="font-bold text-sm">${bookTitle}</h4>
+                            <p class="text-xs text-gray-500">${author} • ${date}</p>
+                        </div>
+                        <div class="flex text-sm">
+                            ${starsHtml}
+                        </div>
+                    </div>
+                    <p class="text-gray-800 whitespace-pre-line">${comment.comment_text}</p>
+                </div>
+                `;
+            container.innerHTML += html;
+          });
+        } catch (error) {
+          console.error(error);
+          container.innerHTML =
+            '<p class="text-red-500 text-center">Yorumlar yüklenemedi.</p>';
+        }
+      }
+
+      async function getFollowing(userId) {
+        const container = document.getElementById("content-following");
+
+        try {
+          const response = await authFetch(`/users/following/${userId}`);
+          if (!response) return;
+
+          const following = await response.json();
+
+          container.innerHTML = "";
+
+          if (following.length === 0) {
+            container.innerHTML =
+              '<div class="text-center py-8 col-span-2"><i class="fas fa-users text-4xl text-gray-200 mb-3"></i><p class="text-gray-500">Henüz kimseyi takip etmiyorsunuz.</p></div>';
+            return;
+          }
+
+          following.forEach((user) => {
+            const name = user.name || user.username;
+            const initial = name.charAt(0).toUpperCase();
+
+            const html = `
+                <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
+                        ${initial}
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm">${name}</h4>
+                        <p class="text-xs text-gray-500">@${user.username}</p>
+                    </div>
+                    <button class="px-4 py-2 border border-gray-300 rounded-full text-sm hover:bg-gray-50 transition">
+                        Following
+                    </button>
+                </div>
+                `;
+            container.innerHTML += html;
+          });
+        } catch (error) {
+          console.error(error);
+          container.innerHTML =
+            '<p class="text-red-500 text-center col-span-2">Takip listesi yüklenemedi.</p>';
+        }
+      }
+
+      function logout() {
+        if (confirm("Çıkış yapmak istediğinizden emin misiniz?")) {
+          localStorage.clear();
+          window.location.href = "login.html";
+        }
+      }
+    </script>
+  </body>
+</html>

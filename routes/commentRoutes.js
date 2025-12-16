@@ -1,10 +1,15 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const commentController = require('../controllers/commentController');
-const authMiddleware = require('../middleware/authMiddleware');
+const commentController = require("../controllers/commentController");
+const authMiddleware = require("../middlewares/authMiddleware");
 
-router.post('/yap', authMiddleware, commentController.yorumYap);
+router.post(
+  "/books/:bookId/comment",
+  authMiddleware,
+  commentController.addComment
+);
 
-router.get('/kitap/:kitapId', commentController.kitabinYorumlariniGetir);
+router.get("/book/:bookId", commentController.getBookComments);
+router.get("/user/:userId", commentController.getUserComments);
 
 module.exports = router;

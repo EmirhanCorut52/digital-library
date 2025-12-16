@@ -1,23 +1,27 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db");
 
-const Post = sequelize.define('Post', {
-    gonderi_id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+const Post = sequelize.define(
+  "Post",
+  {
+    post_id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
     },
-    gonderi_metni: {
-        type: DataTypes.TEXT,
-        allowNull: false
+    post_text: {
+      type: DataTypes.TEXT,
+      allowNull: false,
     },
-    olusturma_tarihi: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW
-    }
-}, {
-    tableName: 'Gonderiler',
-    timestamps: false
-});
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+  },
+  {
+    tableName: "Posts",
+    timestamps: false,
+  }
+);
 
 module.exports = Post;

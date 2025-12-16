@@ -1,46 +1,225 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dijital Kütüphane</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Ana Sayfa - Dijital Kütüphane</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
 
-    <header>
-        <h1>📚 Dijital Kütüphane</h1>
-        <nav id="nav-menu" style="display: none;">
-            <button onclick="cikisYap()">Çıkış Yap</button>
-        </nav>
-    </header>
+<body class="bg-gray-50">
 
-    <main>
-        <section id="login-section">
-            <h2>Giriş Yap</h2>
-            <form id="login-form">
-                <input type="email" id="email" placeholder="E-posta Adresi" required>
-                <input type="password" id="password" placeholder="Şifre" required>
-                <button type="submit">Giriş Yap</button>
-            </form>
-            <p id="error-message" style="color: red;"></p>
-        </section>
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-book-open text-blue-600 text-2xl mr-2"></i>
+                    <a href="index.html" class="flex items-center text-gray-800 hover:text-blue-600">
+                    <span class="font-bold text-xl text-gray-800">Dijital Kütüphane</span>
+                    </a>
+                </div>
 
-        <section id="dashboard-section" style="display: none;">
-            <h2>👋 Hoşgeldin, <span id="kullanici-adi"></span></h2>
+                <div class="flex-1 flex items-center justify-center px-8">
+                    <div class="relative w-full max-w-md">
+                        <input type="text"
+                            class="w-full bg-gray-100 rounded-full py-2 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Kitap, yazar veya kullanıcı ara...">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">                  
+                    <a href="profile.html" class="text-gray-600 hover:text-blue-600"><i
+                            class="fas fa-user-circle text-2xl"></i></button>
+                        <button class="text-red-500 hover:text-red-700">
+                      <a href="login.html" class="text-red-500 hover:text-red-700">
+                         <i class="fas fa-sign-out-alt text-xl"></i>
+                      </a>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            <div class="hidden md:block">
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <i class="fas fa-user text-3xl text-gray-400"></i>
+                    </div>
+                    <h3 id="sidebar-name" class="font-bold text-gray-900">Yükleniyor...</h3>
+                    <p id="sidebar-username" class="text-sm text-gray-500 mb-4">...</p>
+                    <div class="flex justify-around text-sm border-t pt-4">
+                        <div>
+                            <span id="sidebar-books" class="block font-bold">Yükleniyor...</span>
+                            <span class="text-gray-500">Kitap</span>
+                        </div>
+                        <div>
+                            <span id="sidebar-following" class="block font-bold">Yükleniyor...</span>
+                            <span class="text-gray-500">Takip</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-1 md:col-span-2 space-y-6">
+
+            <div id="create-post-form">
+                <textarea id="post-input" class="w-full border-none focus:ring-0 resize-none text-gray-700" rows="2" placeholder="Okuduğun kitap hakkında ne düşünüyorsunuz?"></textarea>
+                <div class="flex justify-between items-center mt-3 pt-3 border-t">
+                    <button onclick="tagBook()" class="text-blue-500 text-sm"><i class="fas fa-book mr-1"></i> Kitap Etiketle</button>
+                    <button onclick="sharePost()" class="bg-blue-600 text-white px-6 py-1.5 rounded-full hover:bg-blue-700 text-sm font-semibold">Paylaş</button>
+                </div>
+            </div>
+
+            <div id="feed-container" class="space-y-6">
+                <p class="text-center text-gray-500">Gönderiler yükleniyor...</p>
+            </div>
+
+            </div>
+
+            <div class="hidden md:block">
+                <div class="bg-white rounded-lg shadow p-4">
+                    <h3 class="font-bold text-gray-700 mb-4">Popüler Kitaplar</h3>
+                    <div id="popular-books" class="space-y-4">
+                        <p class="text-gray-500 text-sm">Yükleniyor...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script src="js/main.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        getProfileInfo();
+        getFeed();
+        getPopularBooks();
+    });
+
+    function getProfileInfo() {
+        authFetch('/auth/me').then(async (response) => {
+            if (response) {
+                const user = await response.json();
+                document.getElementById('sidebar-name').innerText = user.name || user.username;
+                document.getElementById('sidebar-username').innerText = "@" + user.username;
+
+                authFetch(`/users/profile/${user.user_id}`).then(async (res) => {
+                    if (res.ok) {
+                        const profile = await res.json();
+                        const stats = profile.stats;
+                        document.getElementById('sidebar-books').innerText = stats.books;
+                        document.getElementById('sidebar-following').innerText = stats.following;
+                    }
+                });
+            }
+        }).catch(() => {
+            const userName = localStorage.getItem('user_name') || "User";
+            document.getElementById('sidebar-name').innerText = userName;
+            document.getElementById('sidebar-username').innerText = "@" + userName.toLowerCase().replace(/\s/g, '');
+        });
+    }
+
+    async function getFeed() {
+        const container = document.getElementById('feed-container');
+
+        try {
+            const response = await authFetch('/posts/feed'); 
             
-            <div class="new-post">
-                <textarea id="post-text" placeholder="Ne okuyorsun? Düşüncelerini paylaş..."></textarea>
-                <button onclick="gonderiPaylas()">Paylaş</button>
-            </div>
+            if (!response) return;
 
-            <h3>Sosyal Akış</h3>
-            <div id="feed-container">
-                <p>Yükleniyor...</p>
-            </div>
-        </section>
-    </main>
+            const posts = await response.json();
+            container.innerHTML = '';
 
-    <script src="app.js"></script>
+            if (posts.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">Henüz gönderi yok. İlk paylaşanı ol!</p>';
+                return;
+            }
+
+            posts.forEach(post => {
+                const date = new Date(post.created_at).toLocaleDateString('en-US', { 
+                    day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' 
+                });
+                
+                const initials = post.User.username.substring(0, 2).toUpperCase();
+
+                const html = `
+                <div class="bg-white rounded-lg shadow p-4 relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-600">
+                                ${initials}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm">${post.User.username}</h4>
+                                <p class="text-xs text-gray-500">${date}</p>
+                            </div>
+                        </div>
+                        ${post.User.user_id === 1 ?
+                            `<button class="text-gray-400 hover:text-red-500"><i class="fas fa-trash"></i></button>` : ''}
+                    </div>
+
+                    <p class="text-gray-800 mb-3 whitespace-pre-line">${post.post_text}</p>
+
+                    <div class="flex items-center gap-6 text-gray-500 text-sm border-t pt-3 mt-3">
+                        <button class="hover:text-red-500 flex items-center gap-1"><i class="far fa-heart"></i> Beğen</button>
+                        <button class="hover:text-blue-500 flex items-center gap-1"><i class="far fa-comment"></i> Yorum</button>
+                    </div>
+                </div>
+                `;
+                
+                container.innerHTML += html;
+            });
+
+        } catch (error) {
+            console.error(error);
+            container.innerHTML = '<p class="text-center text-red-500">Gönderiler yüklenemedi.</p>';
+        }
+    }
+
+    async function getPopularBooks() {
+        const container = document.getElementById('popular-books');
+
+        try {
+            const response = await fetch('/api/books/popular');
+            if (!response.ok) return;
+
+            const books = await response.json();
+            container.innerHTML = '';
+
+            if (books.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">Henüz popüler kitap yok.</p>';
+                return;
+            }
+
+            books.forEach(book => {
+                const html = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-14 bg-gray-200 rounded"></div>
+                        <div>
+                            <h4 class="font-bold text-sm">${book.title}</h4>
+                            <p class="text-xs text-gray-500">${book.author}</p>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        } catch (error) {
+            console.error('Error loading popular books:', error);
+        }
+    }
+
+    function tagBook() {
+        window.location.href = "search-results.html?q=";
+    }
+</script>
 </body>
+
 </html>

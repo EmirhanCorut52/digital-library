@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profili Düzenle - Dijital Kütüphane</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <a
+              href="index.html"
+              class="flex items-center text-gray-800 hover:text-blue-600"
+            >
+              <i class="fas fa-book-open text-blue-600 text-2xl mr-2"></i>
+              <span class="font-bold text-xl">Dijital Kütüphane</span>
+            </a>
+          </div>
+          <div class="flex items-center gap-4">
+            <a
+              href="profile.html"
+              class="text-blue-600 font-semibold text-sm hover:underline"
+            >
+              <i class="fas fa-arrow-left mr-1"></i> Profile Dön
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+      <div class="flex flex-col md:flex-row gap-6">
+        <div class="w-full md:w-1/4">
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-4 border-b bg-gray-50">
+              <h3 class="font-bold text-gray-700">Ayarlar</h3>
+            </div>
+            <nav class="flex flex-col">
+              <a
+                href="#"
+                class="px-4 py-3 bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600 flex items-center"
+              >
+                <i class="fas fa-user-edit w-6"></i> Profil Bilgileri
+              </a>
+              <a
+                href="change-password.html"
+                class="px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 flex items-center transition"
+              >
+                <i class="fas fa-lock w-6"></i> Şifre Değiştir
+              </a>
+              <a
+                href="#"
+                onclick="logout()"
+                class="px-4 py-3 text-red-500 hover:bg-red-50 hover:text-red-700 flex items-center transition border-t"
+              >
+                <i class="fas fa-trash-alt w-6"></i> Hesabı Sil
+              </a>
+            </nav>
+          </div>
+        </div>
+
+        <div class="w-full md:w-3/4">
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-bold mb-6 pb-2 border-b">
+              Profil Bilgileri
+            </h2>
+
+            <form onsubmit="save(event)">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2"
+                    >Ad Soyad</label
+                  >
+                  <input
+                    type="text"
+                    id="input-ad"
+                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 focus:bg-white"
+                    placeholder="Adınız"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2"
+                    >Kullanıcı Adı</label
+                  >
+                  <input
+                    type="text"
+                    id="input-kadi"
+                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 focus:bg-white"
+                    placeholder="Kullanıcı adınız"
+                  />
+                </div>
+              </div>
+
+              <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-700 mb-2"
+                  >E-posta Adresi</label
+                >
+                <input
+                  type="email"
+                  id="input-email"
+                  class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 focus:bg-white"
+                  placeholder="E-posta adresiniz"
+                />
+              </div>
+
+              <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-700 mb-2"
+                  >Hakkımda</label
+                >
+                <textarea
+                  id="input-bio"
+                  rows="4"
+                  class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 focus:bg-white"
+                  placeholder="Kendinizden bahsedin... (Henüz veritabanında aktif değil)"
+                ></textarea>
+              </div>
+
+              <div class="flex justify-end gap-4">
+                <button
+                  type="button"
+                  onclick="window.location.href='profile.html'"
+                  class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-100 transition"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  class="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 shadow-md transition flex items-center"
+                >
+                  <i class="fas fa-save mr-2"></i> Değişiklikleri Kaydet
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const response = await authFetch("/auth/me");
+          if (response.ok) {
+            const user = await response.json();
+
+            document.getElementById("input-ad").value =
+              user.name && user.name !== "undefined" ? user.name : "";
+            document.getElementById("input-kadi").value = user.username || "";
+            document.getElementById("input-email").value = user.email || "";
+            document.getElementById("input-bio").value =
+              user.bio && user.bio !== "undefined" ? user.bio : "";
+          }
+        } catch (error) {
+          console.error("Bilgiler çekilemedi:", error);
+        }
+      });
+
+      async function save(e) {
+        e.preventDefault();
+
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML =
+          '<i class="fas fa-spinner fa-spin mr-2"></i> Kaydediliyor...';
+        btn.disabled = true;
+
+        const adVal = document.getElementById("input-ad").value;
+        const nickVal = document.getElementById("input-kadi").value;
+        const emailVal = document.getElementById("input-email").value;
+        const bioVal = document.getElementById("input-bio").value;
+
+        try {
+          const response = await authFetch("/auth/update-profile", {
+            method: "PUT",
+            body: JSON.stringify({
+              name: adVal,
+              username: nickVal,
+              email: emailVal,
+              bio: bioVal,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert("Profil bilgileriniz güncellendi!");
+            if (data.user) {
+              localStorage.setItem(
+                "user_name",
+                data.user.name || data.user.username
+              );
+            }
+            window.location.href = "profile.html";
+          } else {
+            alert("Hata: " + (data.error || "Güncellenemedi"));
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Sunucu hatası oluştu.");
+        } finally {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
+
+      function logout() {
+        if (confirm("Çıkış yapmak istediğinize emin misiniz?")) {
+          localStorage.clear();
+          window.location.href = "login.html";
+        }
+      }
+    </script>
+  </body>
+</html>

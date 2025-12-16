@@ -1,40 +1,52 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db");
 
-const User = sequelize.define('User', {
-    kullanici_id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+const User = sequelize.define(
+  "User",
+  {
+    user_id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
     },
-    kullanici_adi: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-        unique: true
+    username: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      unique: true,
     },
-    e_posta: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-        unique: true,
-        validate: {
-            isEmail: true
-        }
+    email: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true,
+      },
     },
-    parola_hash: {
-        type: DataTypes.STRING(255),
-        allowNull: false
+    password_hash: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
     },
-    rol: {
-        type: DataTypes.STRING(20),
-        defaultValue: 'kullanici'
+    name: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
     },
-    olusturma_tarihi: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW
-    }
-}, {
-    tableName: 'Kullanicilar',
-    timestamps: false
-});
+    bio: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    role: {
+      type: DataTypes.STRING(20),
+      defaultValue: "user",
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+  },
+  {
+    tableName: "Users",
+    timestamps: false,
+  }
+);
 
 module.exports = User;

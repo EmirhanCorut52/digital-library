@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yönetici Paneli - Dijital Kütüphane</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .active-nav {
+        background-color: #1e293b;
+        border-right: 4px solid #3b82f6;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+      <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl">
+        <div
+          class="h-16 flex items-center justify-center border-b border-slate-700"
+        >
+          <i class="fas fa-shield-alt text-blue-500 text-2xl mr-2"></i>
+          <span class="font-bold text-xl">Admin Paneli</span>
+        </div>
+
+        <nav class="flex-1 py-6 space-y-1">
+          <button
+            onclick="showSection('dashboard')"
+            id="btn-dashboard"
+            class="w-full text-left px-6 py-3 hover:bg-slate-800 transition flex items-center active-nav"
+          >
+            <i class="fas fa-chart-line w-6"></i> Genel Bakış
+          </button>
+          <button
+            onclick="showSection('books')"
+            id="btn-books"
+            class="w-full text-left px-6 py-3 hover:bg-slate-800 transition flex items-center"
+          >
+            <i class="fas fa-book w-6"></i> Kitap Yönetimi
+          </button>
+          <button
+            onclick="showSection('users')"
+            id="btn-users"
+            class="w-full text-left px-6 py-3 hover:bg-slate-800 transition flex items-center"
+          >
+            <i class="fas fa-users w-6"></i> Kullanıcı Yönetimi
+          </button>
+          <button
+            onclick="showSection('moderation')"
+            id="btn-moderation"
+            class="w-full text-left px-6 py-3 hover:bg-slate-800 transition flex items-center"
+          >
+            <i class="fas fa-gavel w-6"></i> Moderasyon
+          </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-700">
+          <button
+            onclick="logout()"
+            class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded flex items-center justify-center transition"
+          >
+            <i class="fas fa-sign-out-alt mr-2"></i> Çıkış Yap
+          </button>
+        </div>
+      </aside>
+
+      <main class="flex-1 overflow-y-auto p-8">
+        <header class="flex justify-between items-center mb-8">
+          <h2 id="page-title" class="text-3xl font-bold text-gray-800">
+            Genel Bakış
+          </h2>
+          <div class="flex items-center gap-3">
+            <div class="text-right hidden sm:block">
+              <p id="admin-name" class="text-sm font-bold text-gray-900">
+                Yönetici
+              </p>
+              <p id="admin-email" class="text-xs text-gray-500">-</p>
+            </div>
+            <div
+              class="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white"
+            >
+              <i class="fas fa-user-cog"></i>
+            </div>
+          </div>
+        </header>
+
+        <div id="section-dashboard" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div
+              class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500"
+            >
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-gray-500 text-sm">Toplam Kitap</p>
+                  <h3 id="stat-books" class="text-2xl font-bold">-</h3>
+                </div>
+                <i class="fas fa-book text-blue-100 text-3xl"></i>
+              </div>
+            </div>
+            <div
+              class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-green-500"
+            >
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-gray-500 text-sm">Aktif Kullanıcı</p>
+                  <h3 id="stat-users" class="text-2xl font-bold">-</h3>
+                </div>
+                <i class="fas fa-users text-green-100 text-3xl"></i>
+              </div>
+            </div>
+            <div
+              class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-purple-500"
+            >
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-gray-500 text-sm">Toplam Yorum</p>
+                  <h3 id="stat-comments" class="text-2xl font-bold">-</h3>
+                </div>
+                <i class="fas fa-comments text-purple-100 text-3xl"></i>
+              </div>
+            </div>
+            <div
+              class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-red-500"
+            >
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-gray-500 text-sm">Şikayet/Rapor</p>
+                  <h3 id="stat-reports" class="text-2xl font-bold">-</h3>
+                </div>
+                <i
+                  class="fas fa-exclamation-triangle text-red-100 text-3xl"
+                ></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-books" class="hidden">
+          <div class="flex justify-between mb-4">
+            <div class="relative w-64">
+              <input
+                type="text"
+                placeholder="Kitap ara..."
+                class="w-full border rounded pl-8 pr-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+              />
+              <i
+                class="fas fa-search absolute left-2.5 top-3 text-gray-400 text-xs"
+              ></i>
+            </div>
+            <button
+              onclick="kitapEkleModal()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold flex items-center"
+            >
+              <i class="fas fa-plus mr-2"></i> Yeni Kitap Ekle
+            </button>
+          </div>
+
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+                <tr>
+                  <th class="p-4 border-b">ID</th>
+                  <th class="p-4 border-b">Kitap Adı</th>
+                  <th class="p-4 border-b">Yazar</th>
+                  <th class="p-4 border-b">Kategori</th>
+                  <th class="p-4 border-b text-center">İşlemler</th>
+                </tr>
+              </thead>
+              <tbody id="books-table-body" class="text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="section-users" class="hidden">
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+                <tr>
+                  <th class="p-4 border-b">Kullanıcı</th>
+                  <th class="p-4 border-b">E-posta</th>
+                  <th class="p-4 border-b">Rol</th>
+                  <th class="p-4 border-b">Durum</th>
+                  <th class="p-4 border-b text-center">İşlemler</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body" class="text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="section-moderation" class="hidden">
+          <div class="bg-white p-8 rounded shadow text-center">
+            <i class="fas fa-check-circle text-green-500 text-4xl mb-3"></i>
+            <p class="text-gray-600">
+              Şu an incelenecek yeni bir şikayet bulunmuyor.
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        checkAdminAuth();
+        loadAdminInfo();
+        loadDashboardStats();
+        loadBooks();
+        loadUsers();
+      });
+
+      function showSection(sectionId) {
+        document.getElementById("section-dashboard").classList.add("hidden");
+        document.getElementById("section-books").classList.add("hidden");
+        document.getElementById("section-users").classList.add("hidden");
+        document.getElementById("section-moderation").classList.add("hidden");
+
+        document
+          .getElementById("section-" + sectionId)
+          .classList.remove("hidden");
+
+        const titles = {
+          dashboard: "Genel Bakış",
+          books: "Kitap Yönetimi",
+          users: "Kullanıcı Yönetimi",
+          moderation: "İçerik Moderasyonu",
+        };
+        document.getElementById("page-title").innerText = titles[sectionId];
+
+        document.querySelectorAll("aside nav button").forEach((btn) => {
+          btn.classList.remove("active-nav", "bg-slate-800");
+        });
+        document.getElementById("btn-" + sectionId).classList.add("active-nav");
+      }
+
+      function checkAdminAuth() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.location.href = "login.html";
+        }
+      }
+
+      async function loadAdminInfo() {
+        try {
+          const res = await authFetch("/auth/me");
+          if (!res) return;
+          const user = await res.json();
+          document.getElementById("admin-name").innerText =
+            user.name || user.username || "Yönetici";
+          document.getElementById("admin-email").innerText = user.email || "";
+        } catch (error) {
+          // Fallback to localStorage if available
+          const name = localStorage.getItem("user_name") || "Yönetici";
+          document.getElementById("admin-name").innerText = name;
+          document.getElementById("admin-email").innerText = "";
+        }
+      }
+
+      async function loadDashboardStats() {
+        try {
+          const response = await authFetch("/admin/stats");
+          if (!response) return;
+          const data = await response.json();
+
+          document.getElementById("stat-books").innerText = data.books || 0;
+          document.getElementById("stat-users").innerText = data.users || 0;
+          document.getElementById("stat-comments").innerText =
+            data.comments || 0;
+
+          const reportEl = document.getElementById("stat-reports");
+          if (reportEl) reportEl.innerText = "0";
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      async function loadBooks() {
+        const tbody = document.getElementById("books-table-body");
+        try {
+          const response = await authFetch("/books");
+          if (!response) return;
+          const books = await response.json();
+
+          tbody.innerHTML = "";
+          if (books.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="5" class="p-4 text-center text-gray-500">Kütüphanede kitap yok.</td></tr>';
+            return;
+          }
+
+          books.forEach((book) => {
+            const html = `
+                    <tr class="hover:bg-gray-50 transition border-b">
+                        <td class="p-4 text-gray-500">#${book.book_id}</td>
+                        <td class="p-4 font-semibold text-gray-800">${book.title}</td>
+                        <td class="p-4 text-gray-600">${book.author}</td>
+                        <td class="p-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">${book.category}</span></td>
+                        <td class="p-4 text-center">
+                            <button onclick="kitapSil(${book.book_id})" class="text-red-500 hover:text-red-700 mx-1 p-2 transition" title="Sil">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            tbody.innerHTML += html;
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      async function loadUsers() {
+        const tbody = document.getElementById("users-table-body");
+        try {
+          const response = await authFetch("/admin/users");
+          if (!response) return;
+
+          const users = await response.json();
+          tbody.innerHTML = "";
+
+          if (!Array.isArray(users) || users.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="5" class="p-4 text-center text-gray-500">Kayıtlı kullanıcı bulunamadı.</td></tr>';
+            return;
+          }
+
+          users.forEach((user) => {
+            const name = user.name || user.username;
+            const initials = (name || "?").substring(0, 2).toUpperCase();
+            const role = user.role || "-";
+            const email = user.email || "-";
+            const roleOptions = ["user", "admin", "banned"]
+              .map(
+                (r) =>
+                  `<option value="${r}" ${
+                    r === role ? "selected" : ""
+                  }>${r}</option>`
+              )
+              .join("");
+
+            const row = `
+              <tr class="hover:bg-gray-50 transition border-b">
+                <td class="p-4 border-b flex items-center gap-3">
+                  <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">${initials}</div>
+                  <span class="font-semibold">${name}</span>
+                </td>
+                <td class="p-4 border-b text-gray-500">${email}</td>
+                <td class="p-4 border-b">
+                  <select class="border rounded px-2 py-1 text-sm" onchange="updateUserRole(${
+                    user.user_id
+                  }, this.value)">
+                    ${roleOptions}
+                  </select>
+                </td>
+                <td class="p-4 border-b text-gray-500">${
+                  role === "banned" ? "Yasaklı" : "Aktif"
+                }</td>
+                <td class="p-4 border-b text-center">
+                  <button class="text-sm px-3 py-1 rounded ${
+                    role === "banned"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }" onclick="toggleBan(${user.user_id}, '${role}')">
+                    ${role === "banned" ? "Banı Kaldır" : "Banla"}
+                  </button>
+                </td>
+              </tr>`;
+            tbody.innerHTML += row;
+          });
+        } catch (error) {
+          console.error(error);
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="p-4 text-center text-red-500">Kullanıcılar yüklenemedi.</td></tr>';
+        }
+      }
+
+      async function updateUserRole(userId, role) {
+        try {
+          const response = await authFetch(`/admin/users/${userId}/role`, {
+            method: "PUT",
+            body: JSON.stringify({ role }),
+          });
+
+          if (!response) return;
+          if (!response.ok) {
+            const data = await response.json();
+            alert(data.error || "Rol güncellenemedi.");
+            loadUsers();
+            return;
+          }
+
+          loadUsers();
+        } catch (error) {
+          console.error(error);
+          alert("Rol güncellenemedi.");
+          loadUsers();
+        }
+      }
+
+      async function toggleBan(userId, currentRole) {
+        const nextRole = currentRole === "banned" ? "user" : "banned";
+        await updateUserRole(userId, nextRole);
+      }
+
+      async function kitapEkleModal() {
+        const title = prompt("Kitap Adı:");
+        if (!title) return;
+
+        const author = prompt("Yazar:");
+        const category = prompt("Kategori:");
+        const publisher = prompt("Yayınevi:");
+        let pageCount = prompt("Sayfa Sayısı:");
+        const description = prompt("Kısa Açıklama:");
+
+        pageCount = parseInt(pageCount) || 0;
+
+        const btn = document.querySelector(
+          'button[onclick="kitapEkleModal()"]'
+        );
+        const originalText = btn ? btn.innerHTML : "";
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ekleniyor...';
+        }
+
+        try {
+          const response = await authFetch("/books/add", {
+            method: "POST",
+            body: JSON.stringify({
+              title: title,
+              author: author,
+              category: category,
+              publisher: publisher,
+              page_count: pageCount,
+              description: description,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert("Kitap başarıyla eklendi! 🎉");
+            loadBooks();
+            loadDashboardStats();
+          } else {
+            console.error("Sunucu Hatası:", data);
+            alert("Hata: " + (data.error || "Bilinmeyen hata"));
+          }
+        } catch (error) {
+          console.error("Bağlantı Hatası:", error);
+          alert("Sunucuya bağlanılamadı. Terminali kontrol edin.");
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+          }
+        }
+      }
+
+      async function kitapSil(id) {
+        if (!confirm("Silmek istediğinize emin misiniz?")) return;
+        try {
+          const response = await authFetch(`/books/${id}`, {
+            method: "DELETE",
+          });
+          if (response.ok) {
+            loadBooks();
+            loadDashboardStats();
+          } else {
+            alert("Silinemedi.");
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function logout() {
+        if (confirm("Çıkış yapmak istediğinize emin misiniz?")) {
+          localStorage.clear();
+          window.location.href = "login.html";
+        }
+      }
+    </script>
+  </body>
+</html>

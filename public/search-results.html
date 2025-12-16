@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arama Sonuçları - Dijital Kütüphane</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <a
+              href="index.html"
+              class="flex items-center text-gray-800 hover:text-blue-600"
+            >
+              <i class="fas fa-book-open text-blue-600 text-2xl mr-2"></i>
+              <span class="font-bold text-xl">Dijital Kütüphane</span>
+            </a>
+          </div>
+          <div class="flex-1 flex items-center justify-center px-8">
+            <form onsubmit="newSearch(event)" class="relative w-full max-w-2xl">
+              <input
+                type="text"
+                id="navbar-search"
+                class="w-full bg-gray-100 border border-blue-300 rounded-full py-2 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Yeni arama yap..."
+              />
+              <button
+                type="submit"
+                class="absolute right-2 top-1 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-blue-700"
+              >
+                <i class="fas fa-arrow-right text-sm"></i>
+              </button>
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <i class="fas fa-search text-gray-500"></i>
+              </div>
+            </form>
+          </div>
+          <div class="flex items-center gap-4">
+            <a href="profile.html" class="text-gray-600 hover:text-blue-600"
+              ><i class="fas fa-user-circle text-2xl"></i
+            ></a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+      <h2 class="text-2xl font-bold mb-6">
+        "<span id="search-query" class="text-blue-600">...</span>" için sonuçlar
+      </h2>
+
+      <div class="flex border-b border-gray-200 mb-6">
+        <button
+          id="books-tab"
+          class="px-4 py-2 font-medium text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+          onclick="switchTab('books')"
+        >
+          Kitaplar
+        </button>
+        <button
+          id="users-tab"
+          class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700"
+          onclick="switchTab('users')"
+        >
+          Kullanıcılar
+        </button>
+      </div>
+
+      <div
+        id="books-container"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
+      >
+        <p class="text-gray-500">Kitap aranıyor...</p>
+      </div>
+
+      <div
+        id="users-container"
+        class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
+      >
+        <p class="text-gray-500">Kullanıcı aranıyor...</p>
+      </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const query = urlParams.get("q");
+
+        if (query) {
+          document.getElementById("search-query").innerText = query;
+          document.getElementById("navbar-search").value = query;
+          performSearch(query);
+        } else {
+          document.getElementById("results-container").innerHTML =
+            '<p class="text-gray-500">Lütfen yukarıdaki kutudan arama yapın.</p>';
+          document.getElementById("search-query").innerText = "-";
+        }
+      });
+
+      async function performSearch(query) {
+        searchBooks(query);
+        searchUsers(query);
+      }
+
+      async function searchBooks(query) {
+        const container = document.getElementById("books-container");
+
+        try {
+          const response = await authFetch(
+            `/books/search?q=${encodeURIComponent(query)}`
+          );
+          if (!response) return;
+
+          const books = await response.json();
+          container.innerHTML = "";
+
+          if (books.length === 0) {
+            container.innerHTML =
+              '<p class="text-gray-500 col-span-3 text-center">Kriterlerinize uygun kitap bulunamadı.</p>';
+            return;
+          }
+
+          books.forEach((book) => {
+            const html = `
+                    <div class="bg-white rounded-lg shadow hover:shadow-md transition p-4 flex gap-4">
+                        <div class="w-24 h-36 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center text-gray-400">
+                            <i class="fas fa-book text-3xl"></i>
+                        </div>
+                        <div class="flex flex-col justify-between w-full">
+                            <div>
+                                <a href="book-details.html?id=${book.book_id}" class="font-bold text-lg text-gray-900 hover:text-blue-600 line-clamp-1">${book.title}</a>
+                                <p class="text-sm text-gray-500 mb-2">${book.author}</p>
+                                <span class="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded">${book.category}</span>
+                            </div>
+                            <a href="book-details.html?id=${book.book_id}" class="mt-3 text-center w-full text-sm border border-blue-600 text-blue-600 py-1 px-3 rounded hover:bg-blue-50 transition">
+                              Detayları Gör
+                            </a>
+                        </div>
+                    </div>
+                    `;
+            container.innerHTML += html;
+          });
+        } catch (error) {
+          console.error(error);
+          container.innerHTML =
+            '<p class="text-red-500">Kitap araması sırasında hata oluştu.</p>';
+        }
+      }
+
+      async function searchUsers(query) {
+        const container = document.getElementById("users-container");
+
+        try {
+          const response = await fetch(
+            `/api/users/search?q=${encodeURIComponent(query)}`
+          );
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const users = await response.json();
+          container.innerHTML = "";
+
+          // Exclude own profile
+          const currentUserId = localStorage.getItem("user_id");
+          const filteredUsers = users.filter(
+            (user) => user.user_id != currentUserId
+          );
+
+          if (filteredUsers.length === 0) {
+            container.innerHTML =
+              '<p class="text-gray-500 col-span-3 text-center">Kriterlerinize uygun kullanıcı bulunamadı.</p>';
+            return;
+          }
+
+          filteredUsers.forEach((user) => {
+            const html = `
+                    <div class="bg-white rounded-lg shadow hover:shadow-md transition p-4 flex gap-4">
+                        <div class="w-16 h-16 bg-gray-200 rounded-full flex-shrink-0 flex items-center justify-center text-gray-400">
+                            <i class="fas fa-user text-2xl"></i>
+                        </div>
+                        <div class="flex flex-col justify-between w-full">
+                            <div>
+                                <a href="user-profile.html?id=${
+                                  user.user_id
+                                }" class="font-bold text-lg text-gray-900 hover:text-blue-600">${
+              user.username
+            }</a>
+                                <p class="text-sm text-gray-500 mb-2">${
+                                  user.name || "İsim belirtilmemiş"
+                                }</p>
+                                <p class="text-sm text-gray-600">${
+                                  user.bio || ""
+                                }</p>
+                            </div>
+                            <a href="user-profile.html?id=${
+                              user.user_id
+                            }" class="mt-3 text-center w-full text-sm border border-blue-600 text-blue-600 py-1 px-3 rounded hover:bg-blue-50 transition">
+                                Profili Görüntüle
+                            </a>
+                        </div>
+                    </div>
+                    `;
+            container.innerHTML += html;
+          });
+        } catch (error) {
+          console.error(error);
+          container.innerHTML =
+            '<p class="text-red-500">Kullanıcı arama sırasında hata oluştu.</p>';
+        }
+      }
+
+      function switchTab(tab) {
+        const booksTab = document.getElementById("books-tab");
+        const usersTab = document.getElementById("users-tab");
+        const booksContainer = document.getElementById("books-container");
+        const usersContainer = document.getElementById("users-container");
+
+        if (tab === "books") {
+          booksTab.className =
+            "px-4 py-2 font-medium text-blue-600 border-b-2 border-blue-600 bg-blue-50";
+          usersTab.className =
+            "px-4 py-2 font-medium text-gray-500 hover:text-gray-700";
+          booksContainer.classList.remove("hidden");
+          usersContainer.classList.add("hidden");
+        } else {
+          usersTab.className =
+            "px-4 py-2 font-medium text-blue-600 border-b-2 border-blue-600 bg-blue-50";
+          booksTab.className =
+            "px-4 py-2 font-medium text-gray-500 hover:text-gray-700";
+          usersContainer.classList.remove("hidden");
+          booksContainer.classList.add("hidden");
+        }
+      }
+
+      function newSearch(e) {
+        e.preventDefault();
+        const val = document.getElementById("navbar-search").value;
+        if (val) {
+          window.location.href = `search-results.html?q=${encodeURIComponent(
+            val
+          )}`;
+        }
+      }
+    </script>
+  </body>
+</html>

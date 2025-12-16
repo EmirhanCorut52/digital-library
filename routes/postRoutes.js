@@ -1,12 +1,12 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const postController = require('../controllers/postController');
-const authMiddleware = require('../middleware/authMiddleware');
+const postController = require("../controllers/postController");
+const authMiddleware = require("../middlewares/authMiddleware");
 
-router.post('/paylas', authMiddleware, postController.gonderiOlustur);
+router.post("/share", authMiddleware, postController.createPost);
 
-router.get('/akis', postController.akisGetir);
+router.get("/feed", postController.getFeed);
 
-router.delete('/sil/:id', authMiddleware, postController.gonderiSil);
+router.delete("/:id", authMiddleware, postController.deletePost);
 
 module.exports = router;
