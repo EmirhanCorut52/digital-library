@@ -81,8 +81,36 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  addAdminShortcut();
+  ensureRoleThenShortcut();
 });
+
+async function ensureRoleThenShortcut() {
+  const token = localStorage.getItem("token");
+  let role = localStorage.getItem("role");
+
+  if (token && !role) {
+    try {
+      const res = await authFetch("/auth/me");
+      if (res && res.ok) {
+        const user = await res.json();
+        if (user.role) {
+          role = user.role;
+          localStorage.setItem("role", role);
+        }
+        if (user.name || user.username) {
+          localStorage.setItem("user_name", user.name || user.username);
+        }
+        if (user.user_id) {
+          localStorage.setItem("user_id", user.user_id);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  addAdminShortcut();
+}
 
 function addAdminShortcut() {
   const role = localStorage.getItem("role");
