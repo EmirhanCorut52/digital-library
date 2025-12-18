@@ -33,4 +33,11 @@ router.put(
   adminController.updateUserRole
 );
 
+router.delete(
+  "/users/:id",
+  authMiddleware,
+  roleMiddleware,
+  adminController.deleteUser
+);
+
 module.exports = router;

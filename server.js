@@ -47,23 +47,33 @@ Comment.belongsTo(User, { foreignKey: "user_id" });
 Book.hasMany(Comment, { foreignKey: "book_id", onDelete: "CASCADE" });
 Comment.belongsTo(Book, { foreignKey: "book_id" });
 
-Follow.belongsTo(User, { foreignKey: "follower_id", as: "Follower" });
-Follow.belongsTo(User, { foreignKey: "following_id", as: "Following" });
-User.hasMany(Follow, { foreignKey: "follower_id" });
-User.hasMany(Follow, { foreignKey: "following_id" });
+Follow.belongsTo(User, { foreignKey: "follower_id", as: "Follower", onDelete: "CASCADE" });
+Follow.belongsTo(User, { foreignKey: "following_id", as: "Following", onDelete: "CASCADE" });
+User.hasMany(Follow, { foreignKey: "follower_id", onDelete: "CASCADE" });
+User.hasMany(Follow, { foreignKey: "following_id", onDelete: "CASCADE" });
 
 app.get("/", (req, res) => {
   res.send("Library System Server is Running!");
 });
 
-sequelize
-  .authenticate()
-  .then(() => {
+(async () => {
+  try {
+    await sequelize.authenticate();
     console.log("SUCCESS: Database connection established!");
-    return sequelize.sync();
-  })
-  .then(() => {
-    app.listen(PORT, () => {
+    
+    await sequelize.sync();
+    console.log("SUCCESS: Models synchronized!");
+    
+    const server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running at: http://localhost:${PORT}`);
     });
-  });
+    
+    server.on('error', (error) => {
+      console.error("SERVER ERROR:", error);
+      process.exit(1);
+    });
+  } catch (error) {
+    console.error("INITIALIZATION ERROR:", error);
+    process.exit(1);
+  }
+})();

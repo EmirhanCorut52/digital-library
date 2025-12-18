@@ -5,9 +5,9 @@ const User = require("../models/User");
 
 exports.register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { name, username, email, password } = req.body;
 
-    if (!username || !email || !password) {
+    if (!name || !username || !email || !password) {
       return res.status(400).json({ error: "Lütfen tüm alanları doldurun." });
     }
 
@@ -26,6 +26,7 @@ exports.register = async (req, res) => {
     const password_hash = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
+      name,
       username,
       email,
       password_hash,
@@ -46,6 +47,9 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log("=== LOGIN DEBUG ===");
+    console.log("Request body:", { email, passwordLength: password?.length });
+
     if (!email || !password) {
       return res
         .status(400)
@@ -54,14 +58,20 @@ exports.login = async (req, res) => {
 
     const user = await User.findOne({ where: { email: email } });
 
+    console.log("User found:", user ? `${user.email} (role: ${user.role})` : "NOT FOUND");
+
     if (!user) {
       return res.status(401).json({ error: "Geçersiz e-posta veya şifre." });
     }
+
+    console.log("Hash exists:", !!user.password_hash, "Length:", user.password_hash?.length);
 
     const isPasswordCorrect = await bcrypt.compare(
       password,
       user.password_hash
     );
+
+    console.log("Password match:", isPasswordCorrect);
 
     if (!isPasswordCorrect) {
       return res.status(401).json({ error: "Geçersiz e-posta veya şifre." });

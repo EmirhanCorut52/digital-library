@@ -104,3 +104,20 @@ exports.updateUserRole = async (req, res) => {
     res.status(500).json({ error: "Rol güncellenemedi." });
   }
 };
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: "Kullanıcı bulunamadı." });
+    }
+
+    await user.destroy();
+    res.status(200).json({ message: "Kullanıcı silindi." });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Kullanıcı silinemedi." });
+  }
+};

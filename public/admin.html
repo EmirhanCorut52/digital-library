@@ -70,9 +70,17 @@
 
       <main class="flex-1 overflow-y-auto p-8">
         <header class="flex justify-between items-center mb-8">
-          <h2 id="page-title" class="text-3xl font-bold text-gray-800">
-            Genel Bakış
-          </h2>
+          <div class="flex items-center gap-4">
+            <h2 id="page-title" class="text-3xl font-bold text-gray-800">
+              Genel Bakış
+            </h2>
+            <a
+              href="index.html"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2 transition"
+            >
+              <i class="fas fa-home"></i> Ana Sayfa
+            </a>
+          </div>
           <div class="flex items-center gap-3">
             <div class="text-right hidden sm:block">
               <p id="admin-name" class="text-sm font-bold text-gray-900">
@@ -358,13 +366,16 @@
                 <td class="p-4 border-b text-gray-500">${
                   role === "banned" ? "Yasaklı" : "Aktif"
                 }</td>
-                <td class="p-4 border-b text-center">
+                <td class="p-4 border-b text-center flex gap-2 justify-center">
                   <button class="text-sm px-3 py-1 rounded ${
                     role === "banned"
                       ? "bg-green-100 text-green-700"
                       : "bg-red-100 text-red-700"
                   }" onclick="toggleBan(${user.user_id}, '${role}')">
                     ${role === "banned" ? "Banı Kaldır" : "Banla"}
+                  </button>
+                  <button onclick="deleteUser(${user.user_id}, '${name}')" class="text-red-500 hover:text-red-700 p-2 transition" title="Sil">
+                    <i class="fas fa-trash-alt"></i>
                   </button>
                 </td>
               </tr>`;
@@ -403,6 +414,31 @@
       async function toggleBan(userId, currentRole) {
         const nextRole = currentRole === "banned" ? "user" : "banned";
         await updateUserRole(userId, nextRole);
+      }
+
+      async function deleteUser(userId, userName) {
+        if (!confirm(`"${userName}" kullanıcısını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
+          return;
+        }
+
+        try {
+          const response = await authFetch(`/admin/users/${userId}`, {
+            method: "DELETE",
+          });
+
+          if (!response) return;
+          if (!response.ok) {
+            const data = await response.json();
+            alert(data.error || "Kullanıcı silinemedi.");
+            return;
+          }
+
+          alert("Kullanıcı başarıyla silindi.");
+          loadUsers();
+        } catch (error) {
+          console.error(error);
+          alert("Kullanıcı silinirken hata oluştu.");
+        }
       }
 
       async function kitapEkleModal() {

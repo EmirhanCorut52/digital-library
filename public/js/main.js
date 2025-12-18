@@ -182,3 +182,82 @@ async function sharePost() {
 function tagBook() {
   alert("Kitap etiketleme özelliği yakında eklenecek.");
 }
+
+async function login() {
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value;
+
+  console.log("Login attempt:", { email, passwordLength: password?.length });
+
+  if (!email || !password) {
+    alert("Lütfen e-posta ve şifrenizi girin.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    console.log("Login response status:", response.status);
+
+    const data = await response.json();
+
+    console.log("Login response data:", data);
+
+    if (response.ok) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("user_id", data.user.id);
+      localStorage.setItem("user_name", data.user.name || data.user.username);
+
+      window.location.href = "index.html";
+    } else {
+      alert(data.error || "Giriş başarısız oldu.");
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    alert("Giriş sırasında hata oluştu.");
+  }
+}
+
+async function register() {
+  const name = document.getElementById("reg-name").value.trim();
+  const username = document.getElementById("reg-username").value.trim();
+  const email = document.getElementById("reg-email").value.trim();
+  const password = document.getElementById("reg-password").value;
+
+  if (!name || !username || !email || !password) {
+    alert("Lütfen tüm alanları doldurun.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, username, email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Kayıt başarılı! Lütfen giriş yapın.");
+      document.getElementById("register-form").reset();
+      toggleForm("login");
+    } else {
+      alert(data.error || "Kayıt başarısız oldu.");
+    }
+  } catch (error) {
+    console.error("Registration error:", error);
+    alert("Kayıt sırasında hata oluştu.");
+  }
+}
+

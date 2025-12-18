@@ -11,6 +11,7 @@ const Follow = sequelize.define(
         model: "Users",
         key: "user_id",
       },
+      onDelete: "CASCADE",
     },
     following_id: {
       type: DataTypes.INTEGER,
@@ -19,6 +20,7 @@ const Follow = sequelize.define(
         model: "Users",
         key: "user_id",
       },
+      onDelete: "CASCADE",
     },
   },
   {
