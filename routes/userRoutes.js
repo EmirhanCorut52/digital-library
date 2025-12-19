@@ -9,6 +9,7 @@ router.get("/follow-status/:id", authMiddleware, userController.followStatus);
 
 router.get("/profile/:id", userController.getProfile);
 router.get("/following/:id", userController.getFollowing);
+router.get("/followers/:id", userController.getFollowers);
 router.get("/search", userController.searchUsers);
 
 module.exports = router;

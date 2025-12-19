@@ -10,6 +10,7 @@ const commentRoutes = require("./routes/commentRoutes");
 const userRoutes = require("./routes/userRoutes");
 const SearchRoutes = require("./routes/searchRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const authorRoutes = require("./routes/authorRoutes");
 
 const User = require("./models/User");
 const Book = require("./models/Book");
@@ -34,6 +35,7 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/search", SearchRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/authors", authorRoutes);
 
 Book.belongsToMany(Author, { through: "BookAuthors", foreignKey: "book_id" });
 Author.belongsToMany(Book, { through: "BookAuthors", foreignKey: "author_id" });
@@ -47,8 +49,16 @@ Comment.belongsTo(User, { foreignKey: "user_id" });
 Book.hasMany(Comment, { foreignKey: "book_id", onDelete: "CASCADE" });
 Comment.belongsTo(Book, { foreignKey: "book_id" });
 
-Follow.belongsTo(User, { foreignKey: "follower_id", as: "Follower", onDelete: "CASCADE" });
-Follow.belongsTo(User, { foreignKey: "following_id", as: "Following", onDelete: "CASCADE" });
+Follow.belongsTo(User, {
+  foreignKey: "follower_id",
+  as: "Follower",
+  onDelete: "CASCADE",
+});
+Follow.belongsTo(User, {
+  foreignKey: "following_id",
+  as: "Following",
+  onDelete: "CASCADE",
+});
 User.hasMany(Follow, { foreignKey: "follower_id", onDelete: "CASCADE" });
 User.hasMany(Follow, { foreignKey: "following_id", onDelete: "CASCADE" });
 
@@ -60,15 +70,15 @@ app.get("/", (req, res) => {
   try {
     await sequelize.authenticate();
     console.log("SUCCESS: Database connection established!");
-    
+
     await sequelize.sync();
     console.log("SUCCESS: Models synchronized!");
-    
+
     const server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running at: http://localhost:${PORT}`);
     });
-    
-    server.on('error', (error) => {
+
+    server.on("error", (error) => {
       console.error("SERVER ERROR:", error);
       process.exit(1);
     });

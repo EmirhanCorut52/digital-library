@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Arama Sonuçları - Dijital Kütüphane</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/output.css" rel="stylesheet" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
@@ -119,27 +119,39 @@
           const response = await authFetch(
             `/books/search?q=${encodeURIComponent(query)}`
           );
-          if (!response) return;
+          if (!response || !response.ok) {
+            container.innerHTML =
+              '<p class="text-red-500 col-span-3 text-center">Kitap araması başarısız oldu.</p>';
+            return;
+          }
 
           const books = await response.json();
           container.innerHTML = "";
 
-          if (books.length === 0) {
+          if (!Array.isArray(books) || books.length === 0) {
             container.innerHTML =
               '<p class="text-gray-500 col-span-3 text-center">Kriterlerinize uygun kitap bulunamadı.</p>';
             return;
           }
 
           books.forEach((book) => {
+            const coverHtml = book.cover_image
+              ? `<img src="${book.cover_image}" alt="${book.title}" class="w-24 h-36 object-cover rounded flex-shrink-0">`
+              : '<div class="w-24 h-36 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center text-gray-400"><i class="fas fa-book text-3xl"></i></div>';
+
+            const authorName =
+              book.author ||
+              (book.Authors && book.Authors.length > 0
+                ? book.Authors.map((a) => a.full_name).join(", ")
+                : "Bilinmeyen");
+
             const html = `
                     <div class="bg-white rounded-lg shadow hover:shadow-md transition p-4 flex gap-4">
-                        <div class="w-24 h-36 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center text-gray-400">
-                            <i class="fas fa-book text-3xl"></i>
-                        </div>
+                        ${coverHtml}
                         <div class="flex flex-col justify-between w-full">
                             <div>
                                 <a href="book-details.html?id=${book.book_id}" class="font-bold text-lg text-gray-900 hover:text-blue-600 line-clamp-1">${book.title}</a>
-                                <p class="text-sm text-gray-500 mb-2">${book.author}</p>
+                                <p class="text-sm text-gray-500 mb-2">${authorName}</p>
                                 <span class="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded">${book.category}</span>
                             </div>
                             <a href="book-details.html?id=${book.book_id}" class="mt-3 text-center w-full text-sm border border-blue-600 text-blue-600 py-1 px-3 rounded hover:bg-blue-50 transition">

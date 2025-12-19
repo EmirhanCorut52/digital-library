@@ -58,13 +58,21 @@ exports.login = async (req, res) => {
 
     const user = await User.findOne({ where: { email: email } });
 
-    console.log("User found:", user ? `${user.email} (role: ${user.role})` : "NOT FOUND");
+    console.log(
+      "User found:",
+      user ? `${user.email} (role: ${user.role})` : "NOT FOUND"
+    );
 
     if (!user) {
       return res.status(401).json({ error: "Geçersiz e-posta veya şifre." });
     }
 
-    console.log("Hash exists:", !!user.password_hash, "Length:", user.password_hash?.length);
+    console.log(
+      "Hash exists:",
+      !!user.password_hash,
+      "Length:",
+      user.password_hash?.length
+    );
 
     const isPasswordCorrect = await bcrypt.compare(
       password,
@@ -170,7 +178,11 @@ exports.resetPassword = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.userData?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Oturum doğrulanamadı." });
+    }
     const { name, username, bio, email } = req.body;
 
     const user = await User.findByPk(userId);
@@ -196,7 +208,23 @@ exports.updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Update error:", error);
-    res.status(500).json({ error: "Güncelleme başarısız oldu." });
+    console.error(error?.stack);
+
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res
+        .status(400)
+        .json({ error: "Kullanıcı adı veya e-posta zaten kullanılıyor." });
+    }
+
+    if (error.name === "SequelizeValidationError") {
+      return res
+        .status(400)
+        .json({ error: error.errors?.[0]?.message || "Geçersiz veri." });
+    }
+
+    res
+      .status(500)
+      .json({ error: "Güncelleme başarısız oldu.", detail: error.message });
   }
 };
 
@@ -252,6 +280,7 @@ exports.getProfile = async (req, res) => {
         "name",
         "role",
         "created_at",
+        "bio",
       ],
     });
     if (!user) {

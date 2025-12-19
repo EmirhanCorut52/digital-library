@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profilim - Dijital Kütüphane</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/output.css" rel="stylesheet" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
@@ -77,11 +77,19 @@
             >
               <div class="text-center md:text-left">
                 <span
-                  id="stat-books"
+                  id="stat-posts"
                   class="block font-bold text-xl text-gray-900"
                   >0</span
                 >
-                <span class="text-sm text-gray-500">Okunan Kitap</span>
+                <span class="text-sm text-gray-500">Gönderi</span>
+              </div>
+              <div class="text-center md:text-left">
+                <span
+                  id="stat-comments"
+                  class="block font-bold text-xl text-gray-900"
+                  >0</span
+                >
+                <span class="text-sm text-gray-500">Yorum</span>
               </div>
               <div class="text-center md:text-left">
                 <span
@@ -117,9 +125,9 @@
         <button
           onclick="switchTab('comments')"
           id="tab-comments"
-          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
+          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focsus:outline-none whitespace-nowrap"
         >
-          Kitap Yorumları (<span id="tab-count-comments">0</span>)
+          Kitap Yorumlarım (<span id="tab-count-comments">0</span>)
         </button>
         <button
           onclick="switchTab('following')"
@@ -127,6 +135,13 @@
           class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
         >
           Takip Edilenler (<span id="tab-count-following">0</span>)
+        </button>
+        <button
+          onclick="switchTab('followers')"
+          id="tab-followers"
+          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
+        >
+          Takipçiler (<span id="tab-count-followers">0</span>)
         </button>
       </div>
 
@@ -146,6 +161,15 @@
           Henüz kimseyi takip etmiyorsunuz.
         </p>
       </div>
+
+      <div
+        id="content-followers"
+        class="hidden grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <p class="text-gray-500 text-center col-span-2">
+          Henüz takipçiniz yok.
+        </p>
+      </div>
     </div>
 
     <script src="js/main.js"></script>
@@ -154,8 +178,9 @@
         document.getElementById("content-posts").classList.add("hidden");
         document.getElementById("content-comments").classList.add("hidden");
         document.getElementById("content-following").classList.add("hidden");
+        document.getElementById("content-followers").classList.add("hidden");
 
-        const tabs = ["posts", "comments", "following"];
+        const tabs = ["posts", "comments", "following", "followers"];
         tabs.forEach((t) => {
           const btn = document.getElementById("tab-" + t);
           btn.classList.remove("border-blue-600", "text-blue-600");
@@ -188,6 +213,15 @@
             }
           });
         }
+        if (tabName === "followers" && !window.followersLoaded) {
+          const userResponse = authFetch("/auth/me").then(async (res) => {
+            if (res) {
+              const user = await res.json();
+              getFollowers(user.user_id);
+              window.followersLoaded = true;
+            }
+          });
+        }
       }
 
       document.addEventListener("DOMContentLoaded", async () => {
@@ -215,7 +249,8 @@
             const profileData = await profileResponse.json();
             const stats = profileData.stats;
 
-            document.getElementById("stat-books").innerText = stats.books;
+            document.getElementById("stat-posts").innerText = stats.posts;
+            document.getElementById("stat-comments").innerText = stats.comments;
             document.getElementById("stat-following").innerText =
               stats.following;
             document.getElementById("stat-followers").innerText =
@@ -223,6 +258,8 @@
             document.getElementById("tab-count-posts").innerText = stats.posts;
             document.getElementById("tab-count-comments").innerText =
               stats.comments;
+            document.getElementById("tab-count-followers").innerText =
+              stats.followers;
           }
 
           await getUserPosts(user.user_id);
@@ -236,6 +273,7 @@
       async function getUserPosts(userId) {
         const container = document.getElementById("content-posts");
         const countSpan = document.getElementById("tab-count-posts");
+        const statPosts = document.getElementById("stat-posts");
 
         try {
           const response = await authFetch("/posts/feed");
@@ -246,6 +284,7 @@
           const myPosts = allPosts.filter((post) => post.user_id == userId);
 
           countSpan.innerText = myPosts.length;
+          statPosts.innerText = myPosts.length;
 
           container.innerHTML = "";
 
@@ -294,6 +333,8 @@
 
       async function getUserComments(userId) {
         const container = document.getElementById("content-comments");
+        const countSpan = document.getElementById("tab-count-comments");
+        const statComments = document.getElementById("stat-comments");
 
         try {
           const response = await authFetch(`/comments/user/${userId}`);
@@ -310,10 +351,15 @@
           container.innerHTML = "";
 
           if (comments.length === 0) {
+            countSpan.innerText = 0;
+            statComments.innerText = 0;
             container.innerHTML =
               '<div class="text-center py-8"><i class="fas fa-comments text-4xl text-gray-200 mb-3"></i><p class="text-gray-500">Henüz yorum yapmadınız.</p></div>';
             return;
           }
+
+          countSpan.innerText = comments.length;
+          statComments.innerText = comments.length;
 
           comments.forEach((comment) => {
             const date = new Date(comment.created_at).toLocaleDateString(
@@ -396,6 +442,47 @@
           console.error(error);
           container.innerHTML =
             '<p class="text-red-500 text-center col-span-2">Takip listesi yüklenemedi.</p>';
+        }
+      }
+
+      async function getFollowers(userId) {
+        const container = document.getElementById("content-followers");
+
+        try {
+          const response = await authFetch(`/users/followers/${userId}`);
+          if (!response) return;
+
+          const followers = await response.json();
+
+          container.innerHTML = "";
+
+          if (followers.length === 0) {
+            container.innerHTML =
+              '<div class="text-center py-8 col-span-2"><i class="fas fa-users text-4xl text-gray-200 mb-3"></i><p class="text-gray-500">Henüz takipçiniz yok.</p></div>';
+            return;
+          }
+
+          followers.forEach((user) => {
+            const name = user.name || user.username;
+            const initial = name.charAt(0).toUpperCase();
+
+            const html = `
+                <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center font-bold text-green-600">
+                        ${initial}
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm">${name}</h4>
+                        <p class="text-xs text-gray-500">@${user.username}</p>
+                    </div>
+                </div>
+                `;
+            container.innerHTML += html;
+          });
+        } catch (error) {
+          console.error(error);
+          container.innerHTML =
+            '<p class="text-red-500 text-center col-span-2">Takipçi listesi yüklenemedi.</p>';
         }
       }
 

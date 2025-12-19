@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Yönetici Paneli - Dijital Kütüphane</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/output.css" rel="stylesheet" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
@@ -171,6 +171,7 @@
             <table class="w-full text-left border-collapse">
               <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
+                  <th class="p-4 border-b">Kapak</th>
                   <th class="p-4 border-b">ID</th>
                   <th class="p-4 border-b">Kitap Adı</th>
                   <th class="p-4 border-b">Yazar</th>
@@ -301,11 +302,22 @@
           }
 
           books.forEach((book) => {
+            const coverHtml = book.cover_image
+              ? `<img src="${book.cover_image}" alt="${book.title}" class="w-12 h-16 object-cover rounded">`
+              : '<div class="w-12 h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs"><i class="fas fa-book"></i></div>';
+
+            const authorName =
+              book.author ||
+              (book.Authors && book.Authors.length > 0
+                ? book.Authors.map((a) => a.full_name).join(", ")
+                : "Bilinmeyen");
+
             const html = `
                     <tr class="hover:bg-gray-50 transition border-b">
+                        <td class="p-4">${coverHtml}</td>
                         <td class="p-4 text-gray-500">#${book.book_id}</td>
                         <td class="p-4 font-semibold text-gray-800">${book.title}</td>
-                        <td class="p-4 text-gray-600">${book.author}</td>
+                        <td class="p-4 text-gray-600">${authorName}</td>
                         <td class="p-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">${book.category}</span></td>
                         <td class="p-4 text-center">
                             <button onclick="kitapSil(${book.book_id})" class="text-red-500 hover:text-red-700 mx-1 p-2 transition" title="Sil">
@@ -374,7 +386,9 @@
                   }" onclick="toggleBan(${user.user_id}, '${role}')">
                     ${role === "banned" ? "Banı Kaldır" : "Banla"}
                   </button>
-                  <button onclick="deleteUser(${user.user_id}, '${name}')" class="text-red-500 hover:text-red-700 p-2 transition" title="Sil">
+                  <button onclick="deleteUser(${
+                    user.user_id
+                  }, '${name}')" class="text-red-500 hover:text-red-700 p-2 transition" title="Sil">
                     <i class="fas fa-trash-alt"></i>
                   </button>
                 </td>
@@ -417,7 +431,11 @@
       }
 
       async function deleteUser(userId, userName) {
-        if (!confirm(`"${userName}" kullanıcısını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
+        if (
+          !confirm(
+            `"${userName}" kullanıcısını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`
+          )
+        ) {
           return;
         }
 
@@ -450,6 +468,7 @@
         const publisher = prompt("Yayınevi:");
         let pageCount = prompt("Sayfa Sayısı:");
         const description = prompt("Kısa Açıklama:");
+        const coverImage = prompt("Kapak Görseli URL (opsiyonel):");
 
         pageCount = parseInt(pageCount) || 0;
 
@@ -472,6 +491,7 @@
               publisher: publisher,
               page_count: pageCount,
               description: description,
+              cover_image: coverImage,
             }),
           });
 

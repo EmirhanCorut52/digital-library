@@ -159,6 +159,28 @@ exports.getFollowing = async (req, res) => {
   }
 };
 
+exports.getFollowers = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const followers = await Follow.findAll({
+      where: { following_id: userId },
+      include: [
+        {
+          model: User,
+          as: "Follower",
+          attributes: ["user_id", "username", "name"],
+        },
+      ],
+    });
+
+    res.status(200).json(followers.map((f) => f.Follower));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Takipçi listesi yüklenemedi." });
+  }
+};
+
 exports.searchUsers = async (req, res) => {
   try {
     const { q } = req.query;
