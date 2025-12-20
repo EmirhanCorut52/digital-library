@@ -19,7 +19,6 @@ exports.getAuthorBooks = async (req, res) => {
 
     res.status(200).json(author);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Yazar bilgileri getirilemedi." });
   }
 };
@@ -37,7 +36,6 @@ exports.getAllAuthors = async (req, res) => {
 
     res.status(200).json(authors);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Yazarlar getirilemedi." });
   }
 };

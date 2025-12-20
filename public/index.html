@@ -70,17 +70,53 @@
 
             <div class="col-span-1 md:col-span-2 space-y-6">
 
-            <div id="create-post-form">
-                <textarea id="post-input" class="w-full border-none focus:ring-0 resize-none text-gray-700" rows="2" placeholder="Okuduğun kitap hakkında ne düşünüyorsunuz?"></textarea>
-                <div class="flex justify-between items-center mt-3 pt-3 border-t">
-                    <button onclick="tagBook()" class="text-blue-500 text-sm"><i class="fas fa-book mr-1"></i> Kitap Etiketle</button>
-                    <button onclick="sharePost()" class="bg-blue-600 text-white px-6 py-1.5 rounded-full hover:bg-blue-700 text-sm font-semibold">Paylaş</button>
+            <div id="create-post-form" class="bg-white rounded-lg shadow-md p-5 border border-gray-200 hover:shadow-lg transition">
+                <div class="flex items-start gap-3 mb-3">
+                    <i class="fas fa-feather text-blue-500 text-lg mt-1"></i>
+                    <textarea id="post-input" class="w-full border-none focus:ring-0 resize-none text-gray-700 placeholder-gray-400 bg-transparent outline-none text-base leading-relaxed" rows="3" placeholder="Okuduğun kitap hakkında ne düşünüyorsunuz?"></textarea>
+                </div>
+                <div id="post-tagged-book" class="hidden mt-2">
+                    <div class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-gray-800">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-book text-blue-600"></i>
+                            <span id="post-tagged-book-title" class="font-semibold"></span>
+                        </div>
+                        <button onclick="clearBookTag()" class="text-gray-500 hover:text-gray-700" aria-label="Tagi kaldır">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="post-tagged-user" class="hidden mt-2">
+                    <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-gray-800">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user text-emerald-600"></i>
+                            <span id="post-tagged-user-name" class="font-semibold"></span>
+                        </div>
+                        <button onclick="clearUserTag()" class="text-gray-500 hover:text-gray-700" aria-label="Kullanıcı tagini kaldır">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-200 relative">
+                    <button onclick="showTagMenu()" class="text-blue-600 hover:text-blue-700 text-sm font-medium transition flex items-center gap-1"><i class="fas fa-tag mr-1"></i> Etiketle</button>
+                    <button onclick="sharePost()" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 text-sm font-semibold shadow-md transition hover:shadow-lg">Paylaş</button>
+
+                    <div id="tag-menu" class="hidden absolute left-0 bottom-full mb-2 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-10">
+                        <button onclick="tagBook()" class="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-700 text-sm flex items-center gap-2 transition">
+                            <i class="fas fa-book text-blue-600"></i> Kitap Etiketle
+                        </button>
+                        <button onclick="tagUser()" class="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-700 text-sm flex items-center gap-2 transition border-t border-gray-100">
+                            <i class="fas fa-user text-green-600"></i> Kullanıcı Etiketle
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div id="feed-container" class="space-y-6">
                 <p class="text-center text-gray-500">Gönderiler yükleniyor...</p>
             </div>
+
+            
 
             </div>
 
@@ -94,8 +130,8 @@
             </div>
 
         </div>
-    </div>
     <script src="js/main.js"></script>
+    <script src="js/tagging.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -150,6 +186,24 @@
                 
                 const initials = post.User.username.substring(0, 2).toUpperCase();
 
+                const chips = [];
+                if (post.Book) {
+                    chips.push(`
+                        <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800" style="background-color:#eff6ff;border-color:#93c5fd;">
+                            <i class="fas fa-book text-blue-600"></i>
+                            <span class="truncate max-w-[240px]">${post.Book.title}</span>
+                        </div>
+                    `);
+                }
+                if (post.TaggedUser) {
+                    chips.push(`
+                        <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800" style="background-color:#d1fae5;border-color:#34d399;">
+                            <i class="fas fa-user text-emerald-600"></i>
+                            <span>@${post.TaggedUser.username}</span>
+                        </div>
+                    `);
+                }
+
                 const html = `
                 <div class="bg-white rounded-lg shadow p-4 relative">
                     <div class="flex items-center justify-between mb-4">
@@ -167,6 +221,8 @@
                     </div>
 
                     <p class="text-gray-800 mb-3 whitespace-pre-line">${post.post_text}</p>
+
+                    ${chips.length ? `<div class="flex flex-wrap gap-2 mb-3">${chips.join('')}</div>` : ''}
 
                     <div class="flex items-center gap-6 text-gray-500 text-sm border-t pt-3 mt-3">
                         <button class="hover:text-red-500 flex items-center gap-1"><i class="far fa-heart"></i> Beğen</button>
@@ -222,10 +278,82 @@
         }
     }
 
-    function tagBook() {
-        window.location.href = "search-results.html?q=";
-    }
+    
+
+
 </script>
+
+    <!-- Kitap Etiket Modal (moved to body end) -->
+    <div id="book-tag-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(6px);">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-5 border-b border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800">Kitap Etiketle</h3>
+                <button onclick="closeBookTagModal()" class="text-gray-500 hover:text-gray-700 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="p-5 border-b border-gray-200">
+                <input
+                    type="text"
+                    id="book-search-input"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    placeholder="Kitap adı, yazar..."
+                    oninput="searchBooksForTag()"
+                    autofocus
+                />
+            </div>
+
+            <div id="book-search-results" class="flex-1 overflow-y-auto" style="max-height:18rem;"></div>
+
+            <div id="tagged-book-display" class="hidden p-5 border-t border-gray-200"></div>
+
+            <div class="p-5 border-t border-gray-200 flex justify-end gap-2">
+                <button onclick="closeBookTagModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition">
+                    İptal
+                </button>
+                <button id="confirm-book-btn" onclick="confirmBookTag()" class="px-4 py-2 bg-gray-300 text-gray-600 rounded-lg font-semibold transition cursor-not-allowed opacity-70" disabled>
+                    Kitabı Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kullanıcı Etiket Modal (moved to body end) -->
+    <div id="user-tag-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(6px);">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-5 border-b border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800">Kullanıcı Etiketle</h3>
+                <button onclick="closeUserTagModal()" class="text-gray-500 hover:text-gray-700 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="p-5 border-b border-gray-200">
+                        <input
+                    type="text"
+                    id="user-search-input"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    placeholder="Kullanıcı adı ara..."
+                            oninput="searchUsersForTag()"
+                            autofocus
+                />
+            </div>
+
+            <div id="user-search-results" class="flex-1 overflow-y-auto" style="max-height:18rem;"></div>
+
+            <div id="tagged-user-display" class="hidden p-5 border-t border-gray-200"></div>
+
+            <div class="p-5 border-t border-gray-200 flex justify-end gap-2">
+                <button onclick="closeUserTagModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition">
+                    İptal
+                </button>
+                        <button id="confirm-user-btn" onclick="confirmUserTag()" class="px-4 py-2 bg-gray-300 text-gray-600 rounded-lg font-semibold transition cursor-not-allowed opacity-70" disabled>
+                            Kullanıcıyı Ekle
+                        </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

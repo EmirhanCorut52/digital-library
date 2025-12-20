@@ -11,5 +11,6 @@ router.post(
 
 router.get("/book/:bookId", commentController.getBookComments);
 router.get("/user/:userId", commentController.getUserComments);
+router.delete("/:commentId", authMiddleware, commentController.deleteComment);
 
 module.exports = router;

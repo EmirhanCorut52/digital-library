@@ -34,7 +34,6 @@ exports.addComment = async (req, res) => {
       comment: newComment,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Yorum eklenirken hata oluştu." });
   }
 };
@@ -69,7 +68,14 @@ exports.getUserComments = async (req, res) => {
       include: [
         {
           model: Book,
-          attributes: ["title", "author"],
+          attributes: ["title", "book_id"],
+          include: [
+            {
+              model: require("../models/Author"),
+              attributes: ["full_name"],
+              through: { attributes: [] },
+            },
+          ],
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -81,12 +87,35 @@ exports.getUserComments = async (req, res) => {
       rating: c.rating,
       created_at: c.createdAt,
       book_title: c.Book ? c.Book.title : null,
-      book_author: c.Book ? c.Book.author : null,
+      book_author:
+        c.Book && c.Book.Authors && c.Book.Authors.length > 0
+          ? c.Book.Authors.map((a) => a.full_name).join(", ")
+          : null,
     }));
 
     res.status(200).json(comments);
   } catch (error) {
-    console.error("Error loading comments:", error);
     res.status(500).json({ error: "Comments could not be loaded." });
+  }
+};
+
+exports.deleteComment = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.userData.userId;
+
+    const comment = await Comment.findByPk(commentId);
+    if (!comment) {
+      return res.status(404).json({ error: "Yorum bulunamadı." });
+    }
+
+    if (comment.user_id !== userId) {
+      return res.status(403).json({ error: "Bu yorumu silme izniniz yok." });
+    }
+
+    await comment.destroy();
+    res.status(200).json({ message: "Yorum başarıyla silindi." });
+  } catch (error) {
+    res.status(500).json({ error: "Yorum silinirken hata oluştu." });
   }
 };

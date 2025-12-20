@@ -5,7 +5,11 @@ const authMiddleware = require("../middlewares/authMiddleware");
 
 router.post("/follow", authMiddleware, userController.follow);
 router.post("/unfollow", authMiddleware, userController.unfollow);
-router.get("/follow-status/:id", authMiddleware, userController.followStatus);
+router.get(
+  "/follow-status/:id",
+  authMiddleware,
+  userController.getFollowStatus
+);
 
 router.get("/profile/:id", userController.getProfile);
 router.get("/following/:id", userController.getFollowing);

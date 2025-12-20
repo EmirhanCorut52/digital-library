@@ -49,13 +49,6 @@
           >
             <i class="fas fa-users w-6"></i> Kullanıcı Yönetimi
           </button>
-          <button
-            onclick="showSection('moderation')"
-            id="btn-moderation"
-            class="w-full text-left px-6 py-3 hover:bg-slate-800 transition flex items-center"
-          >
-            <i class="fas fa-gavel w-6"></i> Moderasyon
-          </button>
         </nav>
 
         <div class="p-4 border-t border-slate-700">
@@ -106,7 +99,7 @@
                   <p class="text-gray-500 text-sm">Toplam Kitap</p>
                   <h3 id="stat-books" class="text-2xl font-bold">-</h3>
                 </div>
-                <i class="fas fa-book text-blue-100 text-3xl"></i>
+                <i class="fas fa-book text-blue-500 text-3xl"></i>
               </div>
             </div>
             <div
@@ -117,7 +110,18 @@
                   <p class="text-gray-500 text-sm">Aktif Kullanıcı</p>
                   <h3 id="stat-users" class="text-2xl font-bold">-</h3>
                 </div>
-                <i class="fas fa-users text-green-100 text-3xl"></i>
+                <i class="fas fa-users text-green-500 text-3xl"></i>
+              </div>
+            </div>
+            <div
+              class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-yellow-500"
+            >
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-gray-500 text-sm">Toplam Gönderi</p>
+                  <h3 id="stat-posts" class="text-2xl font-bold">-</h3>
+                </div>
+                <i class="fas fa-pen text-yellow-500 text-3xl"></i>
               </div>
             </div>
             <div
@@ -128,20 +132,7 @@
                   <p class="text-gray-500 text-sm">Toplam Yorum</p>
                   <h3 id="stat-comments" class="text-2xl font-bold">-</h3>
                 </div>
-                <i class="fas fa-comments text-purple-100 text-3xl"></i>
-              </div>
-            </div>
-            <div
-              class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-red-500"
-            >
-              <div class="flex justify-between items-center">
-                <div>
-                  <p class="text-gray-500 text-sm">Şikayet/Rapor</p>
-                  <h3 id="stat-reports" class="text-2xl font-bold">-</h3>
-                </div>
-                <i
-                  class="fas fa-exclamation-triangle text-red-100 text-3xl"
-                ></i>
+                <i class="fas fa-comments text-purple-500 text-3xl"></i>
               </div>
             </div>
           </div>
@@ -201,13 +192,6 @@
           </div>
         </div>
 
-        <div id="section-moderation" class="hidden">
-          <div class="bg-white p-8 rounded shadow text-center">
-            <i class="fas fa-check-circle text-green-500 text-4xl mb-3"></i>
-            <p class="text-gray-600">
-              Şu an incelenecek yeni bir şikayet bulunmuyor.
-            </p>
-          </div>
         </div>
       </main>
     </div>
@@ -226,7 +210,6 @@
         document.getElementById("section-dashboard").classList.add("hidden");
         document.getElementById("section-books").classList.add("hidden");
         document.getElementById("section-users").classList.add("hidden");
-        document.getElementById("section-moderation").classList.add("hidden");
 
         document
           .getElementById("section-" + sectionId)
@@ -277,11 +260,9 @@
 
           document.getElementById("stat-books").innerText = data.books || 0;
           document.getElementById("stat-users").innerText = data.users || 0;
+          document.getElementById("stat-posts").innerText = data.posts || 0;
           document.getElementById("stat-comments").innerText =
             data.comments || 0;
-
-          const reportEl = document.getElementById("stat-reports");
-          if (reportEl) reportEl.innerText = "0";
         } catch (error) {
           console.error(error);
         }

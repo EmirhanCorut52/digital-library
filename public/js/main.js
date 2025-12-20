@@ -4,15 +4,12 @@ function checkAuth() {
   const token = localStorage.getItem("token");
   const path = window.location.pathname;
 
-  // Public pages that don't require authentication
   const publicPages = ["login.html", "forgot-password", "set-password"];
   const isPublicPage = publicPages.some((page) => path.includes(page));
 
   if (isPublicPage && token) {
-    // If user is logged in and tries to access public pages, redirect to home
     window.location.href = "index.html";
   } else if (!isPublicPage && !token) {
-    // If user is not logged in and tries to access protected pages, redirect to login
     window.location.href = "login.html";
   }
 }
@@ -104,9 +101,7 @@ async function ensureRoleThenShortcut() {
           localStorage.setItem("user_id", user.user_id);
         }
       }
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   }
 
   addAdminShortcut();
@@ -116,7 +111,6 @@ function addAdminShortcut() {
   const role = localStorage.getItem("role");
   if (role !== "admin") return;
 
-  // Create a small floating admin button if one doesn't exist
   if (document.getElementById("admin-shortcut")) return;
 
   const btn = document.createElement("a");
@@ -159,14 +153,28 @@ async function sharePost() {
   }
 
   try {
+    const payload = { text };
+    if (typeof selectedTaggedBook !== "undefined" && selectedTaggedBook) {
+      payload.book_id = selectedTaggedBook.book_id;
+    }
+    if (typeof selectedTaggedUser !== "undefined" && selectedTaggedUser) {
+      payload.tagged_user_id = selectedTaggedUser.user_id;
+    }
+
     const response = await authFetch("/posts/share", {
       method: "POST",
-      body: JSON.stringify({ text }),
+      body: JSON.stringify(payload),
     });
 
     if (response && response.ok) {
       alert("Gönderi paylaşıldı!");
       postInput.value = "";
+      if (typeof clearBookTag !== "undefined") {
+        clearBookTag();
+      }
+      if (typeof clearUserTag !== "undefined") {
+        clearUserTag();
+      }
       if (window.getFeed) {
         window.getFeed();
       }
@@ -174,20 +182,15 @@ async function sharePost() {
       alert("Gönderi paylaşılırken hata oluştu.");
     }
   } catch (error) {
-    console.error("Sharing error:", error);
     alert("Gönderi paylaşılırken hata oluştu.");
   }
 }
 
-function tagBook() {
-  alert("Kitap etiketleme özelliği yakında eklenecek.");
-}
+// tagBook handled in tagging.js
 
 async function login() {
   const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
-
-  console.log("Login attempt:", { email, passwordLength: password?.length });
 
   if (!email || !password) {
     alert("Lütfen e-posta ve şifrenizi girin.");
@@ -203,11 +206,7 @@ async function login() {
       body: JSON.stringify({ email, password }),
     });
 
-    console.log("Login response status:", response.status);
-
     const data = await response.json();
-
-    console.log("Login response data:", data);
 
     if (response.ok) {
       localStorage.setItem("token", data.token);
@@ -221,7 +220,6 @@ async function login() {
       alert(data.error || "Giriş başarısız oldu.");
     }
   } catch (error) {
-    console.error("Login error:", error);
     alert("Giriş sırasında hata oluştu.");
   }
 }
@@ -256,8 +254,6 @@ async function register() {
       alert(data.error || "Kayıt başarısız oldu.");
     }
   } catch (error) {
-    console.error("Registration error:", error);
     alert("Kayıt sırasında hata oluştu.");
   }
 }
-

@@ -27,6 +27,13 @@
             <a href="profile.html" class="text-gray-600 hover:text-blue-600"
               ><i class="fas fa-user-circle text-2xl"></i
             ></a>
+            <a
+              href="#"
+              onclick="logout()"
+              class="text-red-500 hover:text-red-700"
+            >
+              <i class="fas fa-sign-out-alt text-xl"></i>
+            </a>
           </div>
         </div>
       </div>
@@ -200,7 +207,7 @@
         }
 
         loadBookDetails();
-        setRating(5);
+        setRating(0);
       });
 
       async function loadBookDetails() {
@@ -310,6 +317,10 @@
 
       function setRating(rating) {
         document.getElementById("puan-input").value = rating;
+        updateStarDisplay(rating);
+      }
+
+      function updateStarDisplay(rating) {
         const btns = document.querySelectorAll(".star-btn");
         btns.forEach((btn, index) => {
           if (index < rating) {
@@ -321,6 +332,21 @@
           }
         });
       }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const starBtns = document.querySelectorAll(".star-btn");
+        starBtns.forEach((btn, index) => {
+          btn.addEventListener("mouseenter", () => {
+            updateStarDisplay(index + 1);
+          });
+        });
+
+        const starContainer = document.getElementById("star-container");
+        starContainer.addEventListener("mouseleave", () => {
+          const currentRating = document.getElementById("puan-input").value;
+          updateStarDisplay(currentRating);
+        });
+      });
 
       async function addComment(e) {
         e.preventDefault();

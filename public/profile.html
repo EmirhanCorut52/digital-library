@@ -301,7 +301,7 @@
             const initial = username.charAt(0).toUpperCase();
 
             const html = `
-                <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100 relative group">
+                <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100 relative group" id="post-${post.post_id}">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
@@ -313,7 +313,7 @@
                             </div>
                         </div>
                   <button onclick="deletePost(${post.post_id})" class="text-gray-400 hover:text-red-500 transition p-2" title="Sil">
-                            <i class="far fa-trash-alt"></i>
+                            <i class="fas fa-trash text-sm"></i>
                         </button>
                     </div>
                     <p class="text-gray-800 mb-3 whitespace-pre-line">${post.post_text}</p>
@@ -376,20 +376,31 @@
             }
 
             const html = `
-                <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100">
+                <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100" id="comment-${comment.comment_id}">
                     <div class="flex justify-between items-start mb-3">
-                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center font-bold text-green-600">
-                            <i class="fas fa-book"></i>
+                        <div class="flex items-start flex-1">
+                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center font-bold text-green-600 flex-shrink-0">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="flex-1 ml-3">
+                                <h4 class="font-bold text-sm">${bookTitle}</h4>
+                                <p class="text-xs text-gray-500">${author} • ${date}</p>
+                            </div>
                         </div>
-                        <div class="flex-1 ml-3">
-                            <h4 class="font-bold text-sm">${bookTitle}</h4>
-                            <p class="text-xs text-gray-500">${author} • ${date}</p>
-                        </div>
+                        <button 
+                            onclick="deleteUserComment(${comment.comment_id})"
+                            class="text-gray-400 hover:text-red-500 transition p-2"
+                            title="Yorumu sil"
+                        >
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-start">
                         <div class="flex text-sm">
                             ${starsHtml}
                         </div>
                     </div>
-                    <p class="text-gray-800 whitespace-pre-line">${comment.comment_text}</p>
+                    <p class="text-gray-800 whitespace-pre-line mt-3">${comment.comment_text}</p>
                 </div>
                 `;
             container.innerHTML += html;
@@ -483,6 +494,66 @@
           console.error(error);
           container.innerHTML =
             '<p class="text-red-500 text-center col-span-2">Takipçi listesi yüklenemedi.</p>';
+        }
+      }
+
+      async function deleteUserComment(commentId) {
+        if (!confirm("Bu yorumu silmek istediğinizden emin misiniz?")) {
+          return;
+        }
+
+        try {
+          const response = await authFetch(`/comments/${commentId}`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            const commentElement = document.getElementById(
+              `comment-${commentId}`
+            );
+            if (commentElement) {
+              commentElement.remove();
+            }
+            const user = JSON.parse(localStorage.getItem("user"));
+            if (user && (user.id || user.user_id)) {
+              setTimeout(() => {
+                getUserComments(user.id || user.user_id);
+              }, 500);
+            }
+          } else {
+            alert("Yorum silinemedi.");
+          }
+        } catch (error) {
+          alert("Yorum silinirken hata oluştu.");
+        }
+      }
+
+      async function deletePost(postId) {
+        if (!confirm("Bu gönderiyi silmek istediğinizden emin misiniz?")) {
+          return;
+        }
+
+        try {
+          const response = await authFetch(`/posts/${postId}`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            const postElement = document.getElementById(`post-${postId}`);
+            if (postElement) {
+              postElement.remove();
+            }
+            const user = JSON.parse(localStorage.getItem("user"));
+            if (user && (user.id || user.user_id)) {
+              setTimeout(() => {
+                getUserPosts(user.id || user.user_id);
+              }, 500);
+            }
+          } else {
+            alert("Gönderi silinemedi.");
+          }
+        } catch (error) {
+          alert("Gönderi silinirken hata oluştu.");
         }
       }
 

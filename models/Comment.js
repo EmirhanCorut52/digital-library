@@ -26,6 +26,7 @@ const Comment = sequelize.define(
   },
   {
     tableName: "Comments",
+    // Varsayılan createdAt/updatedAt kolonlarını kullan
     timestamps: true,
   }
 );

@@ -34,7 +34,6 @@ exports.follow = async (req, res) => {
 
     res.status(200).json({ message: "User followed!" });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Takip işlemi başarısız oldu." });
   }
 };
@@ -77,7 +76,6 @@ exports.followStatus = async (req, res) => {
 
     res.status(200).json({ isFollowing: !!existingFollow });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Takip durumu kontrol edilemedi." });
   }
 };
@@ -132,7 +130,6 @@ exports.getProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Profil yüklenemedi." });
   }
 };
@@ -154,7 +151,6 @@ exports.getFollowing = async (req, res) => {
 
     res.status(200).json(following.map((f) => f.Following));
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Takip listesi yüklenemedi." });
   }
 };
@@ -176,7 +172,6 @@ exports.getFollowers = async (req, res) => {
 
     res.status(200).json(followers.map((f) => f.Follower));
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Takipçi listesi yüklenemedi." });
   }
 };
@@ -200,7 +195,24 @@ exports.searchUsers = async (req, res) => {
 
     res.status(200).json(users);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Kullanıcı arama hatası." });
+  }
+};
+
+exports.getFollowStatus = async (req, res) => {
+  try {
+    const followerId = req.userData.userId;
+    const followingId = req.params.id;
+
+    const follow = await Follow.findOne({
+      where: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+
+    res.status(200).json({ isFollowing: !!follow });
+  } catch (error) {
+    res.status(500).json({ error: "Takip durumu kontrol hatası." });
   }
 };

@@ -52,7 +52,6 @@ exports.getDashboardStats = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Report Error Details:", error);
     res.status(500).json({
       error: "Raporlar oluşturulurken hata oluştu.",
       detail: error.message,
@@ -76,7 +75,6 @@ exports.getUsersList = async (req, res) => {
 
     res.status(200).json(users);
   } catch (error) {
-    console.error("Error loading users:", error);
     res.status(500).json({ error: "Kullanıcılar yüklenemedi." });
   }
 };
@@ -100,7 +98,6 @@ exports.updateUserRole = async (req, res) => {
 
     res.status(200).json({ message: "Rol güncellendi.", role: user.role });
   } catch (error) {
-    console.error("Error updating role:", error);
     res.status(500).json({ error: "Rol güncellenemedi." });
   }
 };
@@ -117,7 +114,6 @@ exports.deleteUser = async (req, res) => {
     await user.destroy();
     res.status(200).json({ message: "Kullanıcı silindi." });
   } catch (error) {
-    console.error("Error deleting user:", error);
     res.status(500).json({ error: "Kullanıcı silinemedi." });
   }
 };

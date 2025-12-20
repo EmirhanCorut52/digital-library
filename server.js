@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const { DataTypes } = require("sequelize");
 const sequelize = require("./config/db");
 const dotenv = require("dotenv");
 const authRoutes = require("./routes/authRoutes");
@@ -18,6 +19,19 @@ const Author = require("./models/Author");
 const Post = require("./models/Post");
 const Comment = require("./models/Comment");
 const Follow = require("./models/Follow");
+
+// Explicit through model so we can disable timestamps safely
+const BookAuthor = sequelize.define(
+  "BookAuthor",
+  {
+    book_id: { type: DataTypes.INTEGER, primaryKey: true },
+    author_id: { type: DataTypes.INTEGER, primaryKey: true },
+  },
+  {
+    tableName: "BookAuthors",
+    timestamps: false,
+  }
+);
 
 dotenv.config();
 
@@ -37,11 +51,29 @@ app.use("/api/search", SearchRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/authors", authorRoutes);
 
-Book.belongsToMany(Author, { through: "BookAuthors", foreignKey: "book_id" });
-Author.belongsToMany(Book, { through: "BookAuthors", foreignKey: "author_id" });
+Book.belongsToMany(Author, {
+  through: BookAuthor,
+  foreignKey: "book_id",
+  otherKey: "author_id",
+});
+Author.belongsToMany(Book, {
+  through: BookAuthor,
+  foreignKey: "author_id",
+  otherKey: "book_id",
+});
 
 User.hasMany(Post, { foreignKey: "user_id", onDelete: "CASCADE" });
 Post.belongsTo(User, { foreignKey: "user_id" });
+
+Book.hasMany(Post, { foreignKey: "book_id", onDelete: "SET NULL" });
+Post.belongsTo(Book, { foreignKey: "book_id" });
+
+User.hasMany(Post, {
+  foreignKey: "tagged_user_id",
+  as: "TaggedPosts",
+  onDelete: "SET NULL",
+});
+Post.belongsTo(User, { foreignKey: "tagged_user_id", as: "TaggedUser" });
 
 User.hasMany(Comment, { foreignKey: "user_id", onDelete: "CASCADE" });
 Comment.belongsTo(User, { foreignKey: "user_id" });

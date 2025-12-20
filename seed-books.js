@@ -122,34 +122,22 @@ const sampleBooks = [
 async function seedBooks() {
   try {
     await sequelize.authenticate();
-    console.log("✅ Veritabanı bağlantısı başarılı.");
 
     const existingCount = await Book.count();
-    console.log(`📚 Mevcut kitap sayısı: ${existingCount}`);
 
     if (existingCount > 0) {
       const answer = require("readline").createInterface({
         input: process.stdin,
         output: process.stdout,
       });
-
-      console.log(
-        "⚠️  Veritabanında zaten kitap var. Yine de eklemek istiyor musunuz? (y/n)"
-      );
-      // For automation, just proceed
     }
-
-    console.log("📥 Kitaplar ekleniyor...");
 
     for (const bookData of sampleBooks) {
       await Book.create(bookData);
-      console.log(`   ✓ ${bookData.title} - ${bookData.author}`);
     }
 
-    console.log(`\n✅ ${sampleBooks.length} kitap başarıyla eklendi!`);
     process.exit(0);
   } catch (error) {
-    console.error("❌ Hata:", error);
     process.exit(1);
   }
 }

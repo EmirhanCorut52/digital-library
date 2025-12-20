@@ -4,7 +4,6 @@ const adminController = require("../controllers/adminController");
 const authMiddleware = require("../middlewares/authMiddleware");
 const roleMiddleware = require("../middlewares/roleMiddleware");
 
-// Legacy path (raporlar) and current path (stats) for admin dashboard
 router.get(
   "/raporlar",
   authMiddleware,

@@ -1,25 +1,41 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
+const Book = require("../models/Book");
 
 exports.createPost = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, book_id, tagged_user_id } = req.body;
 
     if (!text) {
       return res.status(400).json({ error: "Post text cannot be empty." });
     }
 
-    const newPost = await Post.create({
+    const payload = {
       post_text: text,
       user_id: req.userData.userId,
-    });
+    };
+
+    const parsedBookId = Number.isFinite(Number(book_id))
+      ? Number(book_id)
+      : null;
+    const parsedTaggedUserId = Number.isFinite(Number(tagged_user_id))
+      ? Number(tagged_user_id)
+      : null;
+
+    if (parsedBookId) {
+      payload.book_id = parsedBookId;
+    }
+    if (parsedTaggedUserId) {
+      payload.tagged_user_id = parsedTaggedUserId;
+    }
+
+    const newPost = await Post.create(payload);
 
     res.status(201).json({
       message: "Gönderi paylaşıldı!",
       post: newPost,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Gönderi oluşturulamadı." });
   }
 };
@@ -30,7 +46,16 @@ exports.getFeed = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ["username"],
+          attributes: ["user_id", "username"],
+        },
+        {
+          model: Book,
+          attributes: ["book_id", "title", "cover_image"],
+        },
+        {
+          model: User,
+          as: "TaggedUser",
+          attributes: ["user_id", "username"],
         },
       ],
       order: [["created_at", "DESC"]],
@@ -38,7 +63,6 @@ exports.getFeed = async (req, res) => {
 
     res.status(200).json(posts);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Akış yüklenemedi." });
   }
 };
@@ -65,7 +89,6 @@ exports.deletePost = async (req, res) => {
 
     res.status(200).json({ message: "Gönderi başarıyla silindi." });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Silme işlemi başarısız oldu." });
   }
 };

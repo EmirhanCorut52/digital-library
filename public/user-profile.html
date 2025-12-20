@@ -24,11 +24,15 @@
             </a>
           </div>
           <div class="flex items-center gap-4">
+            <a href="profile.html" class="text-gray-600 hover:text-blue-600"
+              ><i class="fas fa-user-circle text-2xl"></i
+            ></a>
             <a
-              href="profile.html"
-              class="text-blue-600 font-semibold text-sm hover:underline"
+              href="#"
+              onclick="logout()"
+              class="text-red-500 hover:text-red-700"
             >
-              <i class="fas fa-user-circle mr-1"></i> Kendi Profilim
+              <i class="fas fa-sign-out-alt text-xl"></i>
             </a>
           </div>
         </div>
@@ -93,11 +97,11 @@
               </div>
               <div class="text-center md:text-left">
                 <span
-                  id="stat-followers"
+                  id="stat-comments"
                   class="block font-bold text-xl text-gray-900"
                   >0</span
                 >
-                <span class="text-sm text-gray-500">Takipçi</span>
+                <span class="text-sm text-gray-500">Yorum</span>
               </div>
               <div class="text-center md:text-left">
                 <span
@@ -106,6 +110,14 @@
                   >0</span
                 >
                 <span class="text-sm text-gray-500">Takip Edilen</span>
+              </div>
+              <div class="text-center md:text-left">
+                <span
+                  id="stat-followers"
+                  class="block font-bold text-xl text-gray-900"
+                  >0</span
+                >
+                <span class="text-sm text-gray-500">Takipçi</span>
               </div>
             </div>
           </div>
@@ -120,14 +132,14 @@
           id="tab-posts"
           class="px-6 py-3 border-b-2 border-blue-600 text-blue-600 font-semibold focus:outline-none whitespace-nowrap"
         >
-          Gönderiler (<span id="tab-count-posts">0</span>)
+          Gönderilerim (<span id="tab-count-posts">0</span>)
         </button>
         <button
           onclick="switchTab('comments')"
           id="tab-comments"
           class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
         >
-          Kitap Yorumları (<span id="tab-count-comments">0</span>)
+          Kitap Yorumlarım (<span id="tab-count-comments">0</span>)
         </button>
         <button
           onclick="switchTab('following')"
@@ -135,6 +147,13 @@
           class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
         >
           Takip Edilenler (<span id="tab-count-following">0</span>)
+        </button>
+        <button
+          onclick="switchTab('followers')"
+          id="tab-followers"
+          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
+        >
+          Takipçiler (<span id="tab-count-followers">0</span>)
         </button>
       </div>
 
@@ -153,6 +172,13 @@
         <p class="text-gray-500 text-center col-span-2">
           Henüz kimseyi takip etmiyorsunuz.
         </p>
+      </div>
+
+      <div
+        id="content-followers"
+        class="hidden grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <p class="text-gray-500 text-center col-span-2">Henüz takipçisi yok.</p>
       </div>
     </div>
 
@@ -204,6 +230,8 @@
           document.getElementById("stat-posts").innerText = stats.posts || 0;
           document.getElementById("stat-followers").innerText =
             stats.followers || 0;
+          document.getElementById("stat-comments").innerText =
+            stats.comments || 0;
           document.getElementById("stat-following").innerText =
             stats.following || 0;
 
@@ -211,18 +239,25 @@
             stats.posts || 0;
           document.getElementById("tab-count-comments").innerText =
             stats.comments || 0;
+          document.getElementById("tab-count-followers").innerText =
+            stats.followers || 0;
           document.getElementById("tab-count-following").innerText =
             stats.following || 0;
 
-          const followResponse = await authFetch(`/users/follow-status/${id}`);
-          if (followResponse && followResponse.ok) {
-            const followData = await followResponse.json();
-            const btn = document.getElementById("btn-follow");
-            if (followData.isFollowing) {
-              btn.innerHTML =
-                '<i class="fas fa-check mr-2"></i> Takip Ediliyor';
-              btn.classList.remove("bg-blue-600", "hover:bg-blue-700");
-              btn.classList.add("bg-green-600", "hover:bg-green-700");
+          const currentUser = JSON.parse(localStorage.getItem("user"));
+          if (currentUser && currentUser.id !== parseInt(id)) {
+            const followResponse = await authFetch(
+              `/users/follow-status/${id}`
+            );
+            if (followResponse && followResponse.ok) {
+              const followData = await followResponse.json();
+              const btn = document.getElementById("btn-follow");
+              if (followData.isFollowing) {
+                btn.className =
+                  "px-6 py-2 bg-gray-600 text-white rounded-full font-bold hover:bg-gray-700 transition shadow";
+                btn.innerHTML =
+                  '<i class="fas fa-user-minus mr-2"></i> Takibi Bırak';
+              }
             }
           }
 
@@ -436,11 +471,11 @@
               body: JSON.stringify({ user_id: userId }),
             });
 
-            if (response) {
+            if (response && response.ok) {
+              btn.className =
+                "px-6 py-2 bg-gray-600 text-white rounded-full font-bold hover:bg-gray-700 transition shadow";
               btn.innerHTML =
-                '<i class="fas fa-check mr-2"></i> Takip Ediliyor';
-              btn.classList.remove("bg-blue-600", "hover:bg-blue-700");
-              btn.classList.add("bg-green-600", "hover:bg-green-700");
+                '<i class="fas fa-user-minus mr-2"></i> Takibi Bırak';
             }
           } else {
             response = await authFetch("/users/unfollow", {
@@ -448,15 +483,172 @@
               body: JSON.stringify({ user_id: userId }),
             });
 
-            if (response) {
+            if (response && response.ok) {
+              btn.className =
+                "px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition shadow";
               btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i> Takip Et';
-              btn.classList.add("bg-blue-600", "hover:bg-blue-700");
-              btn.classList.remove("bg-green-600", "hover:bg-green-700");
             }
           }
         } catch (error) {
-          console.error("Follow operation error:", error);
           alert("Takip işlemi sırasında hata oluştu.");
+        }
+      }
+
+      async function getFollowing(userId) {
+        const container = document.getElementById("content-following");
+
+        try {
+          const response = await authFetch(`/users/following/${userId}`);
+          if (!response) return;
+
+          const following = await response.json();
+
+          container.innerHTML = "";
+
+          if (following.length === 0) {
+            container.innerHTML =
+              '<div class="text-center py-8 col-span-2"><i class="fas fa-users text-4xl text-gray-200 mb-3"></i><p class="text-gray-500">Henüz kimseyi takip etmiyor.</p></div>';
+            return;
+          }
+
+          following.forEach((user) => {
+            const name = user.name || user.username;
+            const initial = name.charAt(0).toUpperCase();
+
+            const html = `
+                <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
+                        ${initial}
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm">${name}</h4>
+                        <p class="text-xs text-gray-500">@${user.username}</p>
+                    </div>
+                </div>
+                `;
+            container.innerHTML += html;
+          });
+        } catch (error) {
+          container.innerHTML =
+            '<p class="text-red-500 text-center col-span-2">Takip listesi yüklenemedi.</p>';
+        }
+      }
+
+      async function getFollowers(userId) {
+        const container = document.getElementById("content-followers");
+
+        try {
+          const response = await authFetch(`/users/followers/${userId}`);
+          if (!response) return;
+
+          const followers = await response.json();
+
+          container.innerHTML = "";
+
+          if (followers.length === 0) {
+            container.innerHTML =
+              '<div class="text-center py-8 col-span-2"><i class="fas fa-users text-4xl text-gray-200 mb-3"></i><p class="text-gray-500">Henüz takipçisi yok.</p></div>';
+            return;
+          }
+
+          followers.forEach((user) => {
+            const name = user.name || user.username;
+            const initial = name.charAt(0).toUpperCase();
+
+            const html = `
+                <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center font-bold text-green-600">
+                        ${initial}
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm">${name}</h4>
+                        <p class="text-xs text-gray-500">@${user.username}</p>
+                    </div>
+                </div>
+                `;
+            container.innerHTML += html;
+          });
+        } catch (error) {
+          container.innerHTML =
+            '<p class="text-red-500 text-center col-span-2">Takipçi listesi yüklenemedi.</p>';
+        }
+      }
+
+      function switchTab(tab) {
+        document.getElementById("content-posts").classList.add("hidden");
+        document.getElementById("content-comments").classList.add("hidden");
+        document.getElementById("content-following").classList.add("hidden");
+        document.getElementById("content-followers").classList.add("hidden");
+
+        document
+          .getElementById("tab-posts")
+          .classList.remove("border-blue-600", "text-blue-600");
+        document
+          .getElementById("tab-comments")
+          .classList.remove("border-blue-600", "text-blue-600");
+        document
+          .getElementById("tab-following")
+          .classList.remove("border-blue-600", "text-blue-600");
+        document
+          .getElementById("tab-followers")
+          .classList.remove("border-blue-600", "text-blue-600");
+
+        document
+          .getElementById("tab-posts")
+          .classList.add("border-transparent", "text-gray-500");
+        document
+          .getElementById("tab-comments")
+          .classList.add("border-transparent", "text-gray-500");
+        document
+          .getElementById("tab-following")
+          .classList.add("border-transparent", "text-gray-500");
+        document
+          .getElementById("tab-followers")
+          .classList.add("border-transparent", "text-gray-500");
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get("id");
+
+        if (tab === "posts") {
+          document.getElementById("content-posts").classList.remove("hidden");
+          document
+            .getElementById("tab-posts")
+            .classList.remove("border-transparent", "text-gray-500");
+          document
+            .getElementById("tab-posts")
+            .classList.add("border-blue-600", "text-blue-600");
+        } else if (tab === "comments") {
+          document
+            .getElementById("content-comments")
+            .classList.remove("hidden");
+          document
+            .getElementById("tab-comments")
+            .classList.remove("border-transparent", "text-gray-500");
+          document
+            .getElementById("tab-comments")
+            .classList.add("border-blue-600", "text-blue-600");
+        } else if (tab === "following") {
+          document
+            .getElementById("content-following")
+            .classList.remove("hidden");
+          document
+            .getElementById("tab-following")
+            .classList.remove("border-transparent", "text-gray-500");
+          document
+            .getElementById("tab-following")
+            .classList.add("border-blue-600", "text-blue-600");
+          getFollowing(userId);
+        } else if (tab === "followers") {
+          document
+            .getElementById("content-followers")
+            .classList.remove("hidden");
+          document
+            .getElementById("tab-followers")
+            .classList.remove("border-transparent", "text-gray-500");
+          document
+            .getElementById("tab-followers")
+            .classList.add("border-blue-600", "text-blue-600");
+          getFollowers(userId);
         }
       }
     </script>
