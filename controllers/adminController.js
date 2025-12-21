@@ -4,7 +4,7 @@ const Post = require("../models/Post");
 const Comment = require("../models/Comment");
 const sequelize = require("../config/db");
 
-const ALLOWED_ROLES = ["user", "admin", "banned"];
+const ALLOWED_ROLES = ["user", "admin"];
 
 exports.getDashboardStats = async (req, res) => {
   try {

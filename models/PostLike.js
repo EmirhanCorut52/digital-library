@@ -1,29 +1,21 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 
-const Post = sequelize.define(
-  "Post",
+const PostLike = sequelize.define(
+  "PostLike",
   {
-    post_id: {
+    like_id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
-    post_text: {
-      type: DataTypes.TEXT,
+    post_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    },
-    tagged_book_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    tagged_user_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
     },
     created_at: {
       type: DataTypes.DATE,
@@ -31,9 +23,15 @@ const Post = sequelize.define(
     },
   },
   {
-    tableName: "Posts",
+    tableName: "PostLikes",
     timestamps: false,
+    indexes: [
+      {
+        unique: true,
+        fields: ["post_id", "user_id"],
+      },
+    ],
   }
 );
 
-module.exports = Post;
+module.exports = PostLike;

@@ -220,7 +220,6 @@
           document.title = `${book.title} - Kitap Detayı`;
           document.getElementById("book-title").innerText = book.title;
 
-          // Yazarları göster
           const authorContainer = document.getElementById("book-author");
           if (book.Authors && book.Authors.length > 0) {
             authorContainer.innerHTML = book.Authors.map(
@@ -241,7 +240,6 @@
           document.getElementById("book-page").innerText = book.page_count;
           document.getElementById("book-publisher").innerText = book.publisher;
 
-          // Kitap kapağını göster
           if (book.cover_image) {
             const coverImg = document.getElementById("book-cover");
             const placeholder = document.getElementById(

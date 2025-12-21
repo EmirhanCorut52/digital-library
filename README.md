@@ -39,6 +39,6 @@ This project features a robust **RESTful API** backend built with Node.js and a 
 - **Authentication:** JSON Web Token (JWT)
 - **Frontend:** HTML5, Tailwind CSS, Vanilla JavaScript (Fetch API)
 
-## ⚙️ Installation & Setup
+## 🌐 Live Demo
 
-Follow these steps to run the project locally.
+🔗 **[https://digital-library-production-0b33.up.railway.app/](https://digital-library-production-0b33.up.railway.app/)**

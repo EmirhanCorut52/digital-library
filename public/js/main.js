@@ -1,4 +1,128 @@
 const API_URL = "/api";
+const THEME_KEY = "theme";
+
+function ensureThemeStyles() {
+  if (document.getElementById("theme-style")) return;
+  const style = document.createElement("style");
+  style.id = "theme-style";
+  style.innerHTML = `
+    :root {
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --input: #f3f4f6;
+    }
+    html.dark {
+      color-scheme: dark;
+      --bg: #0b1220;
+      --card: #0f172a;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #334155;
+      --input: #111827;
+    }
+    html.dark body { background: var(--bg); color: var(--text); }
+    html.dark .bg-white { background-color: var(--card) !important; }
+    html.dark .bg-gray-50 { background-color: var(--bg) !important; }
+    html.dark .text-gray-900, html.dark .text-gray-800 { color: var(--text) !important; }
+    html.dark .text-gray-700, html.dark .text-gray-600 { color: var(--muted) !important; }
+    html.dark .text-gray-500, html.dark .text-gray-400 { color: #9ca3af !important; }
+    html.dark .border, html.dark .border-gray-100, html.dark .border-gray-200 { border-color: var(--border) !important; }
+    html.dark input, html.dark textarea, html.dark select { background: var(--input) !important; color: var(--text) !important; border-color: var(--border) !important; }
+    html.dark .shadow, html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg { box-shadow: 0 10px 30px rgba(0,0,0,0.35) !important; }
+    html.dark .hover\:bg-gray-50:hover { background-color: #111827 !important; }
+    html.dark nav { background: var(--card); border-bottom: 1px solid var(--border); }
+    html.dark .suggestion-box, html.dark [data-suggestion-box] { background: var(--card) !important; border-color: var(--border) !important; color: var(--text) !important; }
+    html.dark .btn-ghost { background: var(--card); border: 1px solid var(--border); color: var(--text); }
+    html.dark .badge { background: rgba(59,130,246,0.15); color: #bfdbfe; }
+  `;
+  document.head.appendChild(style);
+}
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === "dark") {
+    root.classList.add("dark");
+  } else {
+    root.classList.remove("dark");
+  }
+  localStorage.setItem(THEME_KEY, theme);
+  updateThemeToggle(theme);
+}
+
+function initTheme() {
+  ensureThemeStyles();
+  const saved = localStorage.getItem(THEME_KEY);
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const theme = saved || (prefersDark ? "dark" : "light");
+  applyTheme(theme);
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.classList.contains("dark");
+  applyTheme(isDark ? "light" : "dark");
+}
+
+function updateThemeToggle(theme) {
+  const btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+  const icon = btn.querySelector("i");
+  const label = btn.querySelector("span");
+  if (icon) icon.className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
+  if (label) label.textContent = theme === "dark" ? "Açık" : "Koyu";
+  btn.setAttribute("aria-pressed", theme === "dark");
+}
+
+function renderThemeToggle() {
+  const path = window.location.pathname;
+  if (path.includes("login.html")) return;
+  if (document.getElementById("theme-toggle")) return;
+  const btn = document.createElement("button");
+  btn.id = "theme-toggle";
+  btn.type = "button";
+  btn.className =
+    "flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition focus:outline-none";
+  btn.style.background = "var(--card)";
+  btn.style.color = "var(--text)";
+  btn.style.border = "1px solid var(--border)";
+  btn.style.boxShadow = "0 8px 22px rgba(0,0,0,0.08)";
+  btn.innerHTML = '<i class="fas fa-moon"></i><span>Koyu</span>';
+  btn.onclick = toggleTheme;
+
+  if (path.includes("admin.html")) {
+    const adminHeader =
+      document.querySelector("main header .flex.items-center.gap-3") ||
+      document.querySelector("header .flex.items-center.gap-3");
+    if (adminHeader) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "flex items-center gap-3";
+      wrapper.appendChild(btn);
+      adminHeader.appendChild(wrapper);
+      return;
+    }
+  }
+
+  const navRight =
+    document.querySelector("nav .flex.items-center.gap-4") ||
+    document.querySelector("nav .flex.items-center:not(:first-child)");
+  if (navRight) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "flex items-center gap-3";
+    wrapper.appendChild(btn);
+    navRight.appendChild(wrapper);
+  } else {
+    btn.classList.add(
+      "fixed",
+      "right-4",
+      "bottom-4",
+      "z-[999]",
+      "hover:shadow-lg"
+    );
+    document.body.appendChild(btn);
+  }
+}
 
 function checkAuth() {
   const token = localStorage.getItem("token");
@@ -43,6 +167,8 @@ async function authFetch(endpoint, options = {}) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  renderThemeToggle();
   checkAuth();
 
   const logoutBtns = document.querySelectorAll(".fa-sign-out-alt");
@@ -78,8 +204,170 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  setupNavbarSearchSuggestions();
   ensureRoleThenShortcut();
 });
+
+function setupNavbarSearchSuggestions() {
+  const input = document.getElementById("navbar-search");
+  if (!input) return;
+
+  const wrapper = input.parentElement;
+  if (!wrapper) return;
+  wrapper.classList.add("relative");
+
+  let box = wrapper.querySelector("[data-suggestion-box]");
+  if (!box) {
+    box = document.createElement("div");
+    box.dataset.suggestionBox = "true";
+    box.className =
+      "absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto text-sm hidden z-50";
+    box.style.width = "100%";
+    wrapper.appendChild(box);
+  }
+
+  let debounceId;
+  const hideBox = () => box.classList.add("hidden");
+  const showBox = () => box.classList.remove("hidden");
+
+  input.addEventListener("input", () => {
+    const query = input.value.trim();
+    clearTimeout(debounceId);
+
+    if (!query) {
+      box.innerHTML = "";
+      hideBox();
+      return;
+    }
+
+    if (query.length < 2) {
+      box.innerHTML =
+        '<div class="p-3 text-gray-500 text-sm">En az 2 harf yazın.</div>';
+      showBox();
+      return;
+    }
+
+    box.innerHTML = '<div class="p-3 text-gray-500 text-sm">Aranıyor...</div>';
+    showBox();
+
+    debounceId = setTimeout(() => fetchSearchSuggestions(query, box), 250);
+  });
+
+  input.addEventListener("focus", () => {
+    if (box.innerHTML.trim()) {
+      showBox();
+    }
+  });
+
+  input.addEventListener("blur", () => {
+    setTimeout(() => hideBox(), 150);
+  });
+
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const query = input.value.trim();
+      if (query) {
+        window.location.href = `search-results.html?q=${encodeURIComponent(
+          query
+        )}`;
+      }
+    }
+  });
+}
+
+async function fetchSearchSuggestions(query, box) {
+  try {
+    const res = await authFetch(`/search?q=${encodeURIComponent(query)}`);
+    if (!res || !res.ok) {
+      box.innerHTML =
+        '<div class="p-3 text-red-500 text-sm">Öneriler alınamadı.</div>';
+      return;
+    }
+    const data = await res.json();
+    renderSearchSuggestions(data, box);
+  } catch (error) {
+    box.innerHTML =
+      '<div class="p-3 text-red-500 text-sm">Öneriler alınamadı.</div>';
+  }
+}
+
+function renderSearchSuggestions(data, box) {
+  const books = Array.isArray(data?.books) ? data.books : [];
+  const users = Array.isArray(data?.users) ? data.users : [];
+  const escapeHtml = (str) =>
+    (str || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  if (books.length === 0 && users.length === 0) {
+    box.innerHTML =
+      '<div class="p-3 text-gray-500 text-sm">Sonuç bulunamadı.</div>';
+    box.classList.remove("hidden");
+    return;
+  }
+
+  const bookSection = books
+    .slice(0, 5)
+    .map((book) => {
+      const coverHtml = book.cover_image
+        ? `<img src="${book.cover_image}" alt="${escapeHtml(
+            book.title
+          )}" class="w-10 h-14 object-cover rounded flex-shrink-0" />`
+        : '<div class="w-10 h-14 rounded bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 text-xs"><i class="fas fa-book"></i></div>';
+      return `
+        <button type="button" class="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-start gap-3" onclick="window.location.href='book-details.html?id=${
+          book.book_id
+        }'">
+          ${coverHtml}
+          <div class="min-w-0 flex-1">
+            <div class="text-sm font-semibold text-gray-900 truncate">${escapeHtml(
+              book.title
+            )}</div>
+            <div class="text-xs text-gray-500 truncate">${escapeHtml(
+              book.category || "Kategori yok"
+            )}</div>
+          </div>
+        </button>
+      `;
+    })
+    .join("");
+
+  const userSection = users
+    .slice(0, 5)
+    .map(
+      (user) => `
+        <button type="button" class="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-start gap-2" onclick="window.location.href='user-profile.html?id=${
+          user.user_id
+        }'">
+          <div class="w-9 h-9 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center flex-shrink-0"><i class="fas fa-user"></i></div>
+          <div class="min-w-0">
+            <div class="text-sm font-semibold text-gray-900 truncate">${escapeHtml(
+              user.username
+            )}</div>
+            <div class="text-xs text-gray-500 truncate">${escapeHtml(
+              user.role || "Kullanıcı"
+            )}</div>
+          </div>
+        </button>
+      `
+    )
+    .join("");
+
+  box.innerHTML = `
+    <div class="p-2">
+      <div class="text-[11px] font-semibold text-gray-500 uppercase px-1 mb-1">Kitaplar</div>
+      ${
+        bookSection ||
+        '<div class="px-3 py-2 text-gray-400 text-sm">Sonuç yok</div>'
+      }
+      <div class="text-[11px] font-semibold text-gray-500 uppercase px-1 mt-3 mb-1">Kullanıcılar</div>
+      ${
+        userSection ||
+        '<div class="px-3 py-2 text-gray-400 text-sm">Sonuç yok</div>'
+      }
+    </div>
+  `;
+  box.classList.remove("hidden");
+}
 
 async function ensureRoleThenShortcut() {
   const token = localStorage.getItem("token");
@@ -155,7 +443,7 @@ async function sharePost() {
   try {
     const payload = { text };
     if (typeof selectedTaggedBook !== "undefined" && selectedTaggedBook) {
-      payload.book_id = selectedTaggedBook.book_id;
+      payload.tagged_book_id = selectedTaggedBook.book_id;
     }
     if (typeof selectedTaggedUser !== "undefined" && selectedTaggedUser) {
       payload.tagged_user_id = selectedTaggedUser.user_id;
@@ -185,8 +473,6 @@ async function sharePost() {
     alert("Gönderi paylaşılırken hata oluştu.");
   }
 }
-
-// tagBook handled in tagging.js
 
 async function login() {
   const email = document.getElementById("login-email").value.trim();

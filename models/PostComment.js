@@ -1,21 +1,15 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 
-const Comment = sequelize.define(
-  "Comment",
+const PostComment = sequelize.define(
+  "PostComment",
   {
     comment_id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
-    comment_text: {
-      type: DataTypes.TEXT,
-    },
-    rating: {
-      type: DataTypes.INTEGER,
-    },
-    book_id: {
+    post_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -23,11 +17,19 @@ const Comment = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    comment_text: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
   },
   {
-    tableName: "Comments",
-    timestamps: true,
+    tableName: "PostComments",
+    timestamps: false,
   }
 );
 
-module.exports = Comment;
+module.exports = PostComment;

@@ -61,6 +61,9 @@
                   Yükleniyor...
                 </h1>
                 <p id="profile-username" class="text-gray-500">@...</p>
+                <p id="profile-date" class="text-xs text-gray-400 mt-1">
+                  Üyelik Tarihi: ...
+                </p>
               </div>
               <a
                 href="edit-profile.html"
@@ -120,28 +123,28 @@
           id="tab-posts"
           class="px-6 py-3 border-b-2 border-blue-600 text-blue-600 font-semibold focus:outline-none whitespace-nowrap"
         >
-          Gönderilerim (<span id="tab-count-posts">0</span>)
+          Gönderilerim
         </button>
         <button
           onclick="switchTab('comments')"
           id="tab-comments"
           class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focsus:outline-none whitespace-nowrap"
         >
-          Kitap Yorumlarım (<span id="tab-count-comments">0</span>)
+          Kitap Yorumlarım
         </button>
         <button
           onclick="switchTab('following')"
           id="tab-following"
           class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
         >
-          Takip Edilenler (<span id="tab-count-following">0</span>)
+          Takip Edilenler
         </button>
         <button
           onclick="switchTab('followers')"
           id="tab-followers"
           class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
         >
-          Takipçiler (<span id="tab-count-followers">0</span>)
+          Takipçiler
         </button>
       </div>
 
@@ -198,7 +201,6 @@
           const userResponse = authFetch("/auth/me").then(async (res) => {
             if (res) {
               const user = await res.json();
-              console.log("User ID for comments:", user.user_id);
               getUserComments(user.user_id);
               window.commentsLoaded = true;
             }
@@ -237,6 +239,13 @@
             user.name && user.name !== "undefined" ? user.name : user.username;
           document.getElementById("profile-username").innerText =
             "@" + user.username;
+          const createdDate = user.created_at
+            ? new Date(user.created_at).toLocaleDateString("tr-TR")
+            : "-";
+          const dateEl = document.getElementById("profile-date");
+          if (dateEl) {
+            dateEl.innerText = "Üyelik Tarihi: " + createdDate;
+          }
           document.getElementById("profile-bio").innerText =
             user.bio && user.bio !== "undefined"
               ? user.bio
@@ -255,11 +264,6 @@
               stats.following;
             document.getElementById("stat-followers").innerText =
               stats.followers;
-            document.getElementById("tab-count-posts").innerText = stats.posts;
-            document.getElementById("tab-count-comments").innerText =
-              stats.comments;
-            document.getElementById("tab-count-followers").innerText =
-              stats.followers;
           }
 
           await getUserPosts(user.user_id);
@@ -272,7 +276,6 @@
 
       async function getUserPosts(userId) {
         const container = document.getElementById("content-posts");
-        const countSpan = document.getElementById("tab-count-posts");
         const statPosts = document.getElementById("stat-posts");
 
         try {
@@ -283,7 +286,6 @@
 
           const myPosts = allPosts.filter((post) => post.user_id == userId);
 
-          countSpan.innerText = myPosts.length;
           statPosts.innerText = myPosts.length;
 
           container.innerHTML = "";
@@ -300,8 +302,31 @@
             const username = post.User ? post.User.username : "Kullanıcı";
             const initial = username.charAt(0).toUpperCase();
 
+            const chips = [];
+            if (post.Book) {
+              const bookCover = post.Book.cover_image
+                ? `<img src="${post.Book.cover_image}" alt="${post.Book.title}" class="w-8 h-11 object-cover rounded" />`
+                : '<div class="w-8 h-11 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs"><i class="fas fa-book"></i></div>';
+              chips.push(`
+                <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800">
+                  ${bookCover}
+                  <span class="truncate max-w-[200px]">${post.Book.title}</span>
+                </div>
+              `);
+            }
+            if (post.TaggedUser) {
+              chips.push(`
+                <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800" style="background-color:#d1fae5;border-color:#34d399;">
+                  <i class="fas fa-user text-emerald-600"></i>
+                  <span>@${post.TaggedUser.username}</span>
+                </div>
+              `);
+            }
+
             const html = `
-                <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100 relative group" id="post-${post.post_id}">
+                <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100 relative group" id="post-${
+                  post.post_id
+                }">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
@@ -312,11 +337,22 @@
                       <p class="text-xs text-gray-500">${date}</p>
                             </div>
                         </div>
-                  <button onclick="deletePost(${post.post_id})" class="text-gray-400 hover:text-red-500 transition p-2" title="Sil">
+                  <button onclick="deletePost(${
+                    post.post_id
+                  })" class="text-gray-400 hover:text-red-500 transition p-2" title="Sil">
                             <i class="fas fa-trash text-sm"></i>
                         </button>
                     </div>
-                    <p class="text-gray-800 mb-3 whitespace-pre-line">${post.post_text}</p>
+                    <p class="text-gray-800 mb-3 whitespace-pre-line">${
+                      post.post_text
+                    }</p>
+                    ${
+                      chips.length
+                        ? `<div class="flex flex-wrap gap-2 mb-3">${chips.join(
+                            ""
+                          )}</div>`
+                        : ""
+                    }
                     <div class="flex items-center gap-4 text-gray-500 text-sm">
                         <span><i class="far fa-heart mr-1"></i> 0 Beğeni</span>
                     </div>
@@ -333,7 +369,6 @@
 
       async function getUserComments(userId) {
         const container = document.getElementById("content-comments");
-        const countSpan = document.getElementById("tab-count-comments");
         const statComments = document.getElementById("stat-comments");
 
         try {
@@ -351,14 +386,12 @@
           container.innerHTML = "";
 
           if (comments.length === 0) {
-            countSpan.innerText = 0;
             statComments.innerText = 0;
             container.innerHTML =
               '<div class="text-center py-8"><i class="fas fa-comments text-4xl text-gray-200 mb-3"></i><p class="text-gray-500">Henüz yorum yapmadınız.</p></div>';
             return;
           }
 
-          countSpan.innerText = comments.length;
           statComments.innerText = comments.length;
 
           comments.forEach((comment) => {

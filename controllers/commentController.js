@@ -7,7 +7,11 @@ exports.addComment = async (req, res) => {
   try {
     const { bookId } = req.params;
     const { comment_text, rating } = req.body;
-    const user_id = req.userData.userId;
+    const user_id = req.userData?.userId;
+
+    if (!user_id) {
+      return res.status(401).json({ error: "Yetkisiz erişim!" });
+    }
 
     if (rating < 1 || rating > 5) {
       return res
@@ -102,7 +106,11 @@ exports.getUserComments = async (req, res) => {
 exports.deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const userId = req.userData.userId;
+    const userId = req.userData?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Yetkisiz erişim!" });
+    }
 
     const comment = await Comment.findByPk(commentId);
     if (!comment) {

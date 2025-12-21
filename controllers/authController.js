@@ -119,7 +119,9 @@ exports.forgotPassword = async (req, res) => {
       { expiresIn: "15m" }
     );
 
-    const resetLink = `http://localhost:3000/api/auth/reset-password?token=${resetToken}`;
+    const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+    const baseURL = process.env.BASE_URL || `${protocol}://${req.get("host")}`;
+    const resetLink = `${baseURL}/api/auth/reset-password?token=${resetToken}`;
 
     res.status(200).json({
       message:
@@ -226,8 +228,12 @@ exports.updateProfile = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
   try {
-    const userId = req.userData.userId;
+    const userId = req.userData?.userId;
     const { currentPassword, newPassword } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Yetkisiz erişim!" });
+    }
 
     if (!currentPassword || !newPassword) {
       return res
@@ -272,7 +278,12 @@ exports.changePassword = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const userId = req.userData.userId;
+    const userId = req.userData?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Yetkisiz erişim!" });
+    }
+
     const user = await User.findByPk(userId, {
       attributes: [
         "user_id",

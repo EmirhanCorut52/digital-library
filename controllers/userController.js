@@ -7,8 +7,12 @@ const Op = Sequelize.Op;
 
 exports.follow = async (req, res) => {
   try {
-    const followerId = req.userData.userId;
+    const followerId = req.userData?.userId;
     const followingId = req.body.user_id;
+
+    if (!followerId) {
+      return res.status(401).json({ error: "Yetkisiz erişim!" });
+    }
 
     if (followerId == followingId) {
       return res.status(400).json({ error: "You cannot follow yourself." });
@@ -40,8 +44,12 @@ exports.follow = async (req, res) => {
 
 exports.unfollow = async (req, res) => {
   try {
-    const followerId = req.userData.userId;
+    const followerId = req.userData?.userId;
     const followingId = req.body.user_id;
+
+    if (!followerId) {
+      return res.status(401).json({ error: "Yetkisiz erişim!" });
+    }
 
     const deleted = await Follow.destroy({
       where: {
@@ -64,8 +72,12 @@ exports.unfollow = async (req, res) => {
 
 exports.followStatus = async (req, res) => {
   try {
-    const followerId = req.userData.userId;
+    const followerId = req.userData?.userId;
     const followingId = req.params.id;
+
+    if (!followerId) {
+      return res.status(401).json({ error: "Yetkisiz erişim!" });
+    }
 
     const existingFollow = await Follow.findOne({
       where: {
@@ -201,8 +213,12 @@ exports.searchUsers = async (req, res) => {
 
 exports.getFollowStatus = async (req, res) => {
   try {
-    const followerId = req.userData.userId;
+    const followerId = req.userData?.userId;
     const followingId = req.params.id;
+
+    if (!followerId) {
+      return res.status(401).json({ error: "Yetkisiz erişim!" });
+    }
 
     const follow = await Follow.findOne({
       where: {

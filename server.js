@@ -17,10 +17,11 @@ const User = require("./models/User");
 const Book = require("./models/Book");
 const Author = require("./models/Author");
 const Post = require("./models/Post");
+const PostLike = require("./models/PostLike");
+const PostComment = require("./models/PostComment");
 const Comment = require("./models/Comment");
 const Follow = require("./models/Follow");
 
-// Explicit through model so we can disable timestamps safely
 const BookAuthor = sequelize.define(
   "BookAuthor",
   {
@@ -36,7 +37,8 @@ const BookAuthor = sequelize.define(
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || "0.0.0.0";
 
 app.use(express.json());
 app.use(cors());
@@ -65,8 +67,8 @@ Author.belongsToMany(Book, {
 User.hasMany(Post, { foreignKey: "user_id", onDelete: "CASCADE" });
 Post.belongsTo(User, { foreignKey: "user_id" });
 
-Book.hasMany(Post, { foreignKey: "book_id", onDelete: "SET NULL" });
-Post.belongsTo(Book, { foreignKey: "book_id" });
+Book.hasMany(Post, { foreignKey: "tagged_book_id", onDelete: "SET NULL" });
+Post.belongsTo(Book, { foreignKey: "tagged_book_id" });
 
 User.hasMany(Post, {
   foreignKey: "tagged_user_id",
@@ -74,6 +76,16 @@ User.hasMany(Post, {
   onDelete: "SET NULL",
 });
 Post.belongsTo(User, { foreignKey: "tagged_user_id", as: "TaggedUser" });
+
+Post.hasMany(PostLike, { foreignKey: "post_id", onDelete: "CASCADE" });
+PostLike.belongsTo(Post, { foreignKey: "post_id" });
+User.hasMany(PostLike, { foreignKey: "user_id", onDelete: "CASCADE" });
+PostLike.belongsTo(User, { foreignKey: "user_id" });
+
+Post.hasMany(PostComment, { foreignKey: "post_id", onDelete: "CASCADE" });
+PostComment.belongsTo(Post, { foreignKey: "post_id" });
+User.hasMany(PostComment, { foreignKey: "user_id", onDelete: "CASCADE" });
+PostComment.belongsTo(User, { foreignKey: "user_id" });
 
 User.hasMany(Comment, { foreignKey: "user_id", onDelete: "CASCADE" });
 Comment.belongsTo(User, { foreignKey: "user_id" });
@@ -106,8 +118,9 @@ app.get("/", (req, res) => {
     await sequelize.sync();
     console.log("SUCCESS: Models synchronized!");
 
-    const server = app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running at: http://localhost:${PORT}`);
+    const server = app.listen(PORT, HOST, () => {
+      const displayHost = HOST === "0.0.0.0" ? "localhost" : HOST;
+      console.log(`Server running at: http://${displayHost}:${PORT}`);
     });
 
     server.on("error", (error) => {

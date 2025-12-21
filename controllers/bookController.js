@@ -4,6 +4,9 @@ const Book = require("../models/Book");
 const Author = require("../models/Author");
 const Comment = require("../models/Comment");
 const User = require("../models/User");
+const googleBooks = require("../services/googleBooks");
+const fs = require("fs");
+const path = require("path");
 exports.addBook = async (req, res) => {
   try {
     const {
@@ -65,7 +68,6 @@ exports.getBookDetails = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Kitabı ve yazarlarını çekiyoruz
     const book = await Book.findByPk(id, {
       include: [{ model: Author }],
     });
@@ -74,7 +76,6 @@ exports.getBookDetails = async (req, res) => {
       return res.status(404).json({ error: "Kitap bulunamadı." });
     }
 
-    // Yorumları ayrı sorgu ile çekiyoruz; olası join/timestamp hatalarını izole etmek için
     const comments = await Comment.findAll({
       where: { book_id: id },
       include: [
@@ -126,7 +127,6 @@ exports.searchBooks = async (req, res) => {
 
     if (!q) return res.json([]);
 
-    // Use a raw SQL query to safely match by title, category, or author name
     const [results] = await sequelize.query(
       `
       SELECT 
@@ -176,5 +176,108 @@ exports.getPopularBooks = async (req, res) => {
     res.json(results);
   } catch (error) {
     res.status(500).json({ error: "Popüler kitaplar yüklenemedi." });
+  }
+};
+
+exports.importGoogleBooks = async (req, res) => {
+  try {
+    const { q, isbn, maxResults = 20, downloadImages = false } = req.body || {};
+    const query = isbn ? `isbn:${String(isbn).trim()}` : String(q || "").trim();
+    if (!query) {
+      return res.status(400).json({ error: "Sorgu (q) veya ISBN gerekli." });
+    }
+
+    const apiKey = process.env.GOOGLE_BOOKS_API_KEY || undefined;
+    const results = await googleBooks.searchVolumes({
+      q: query,
+      maxResults,
+      apiKey,
+    });
+
+    const created = [];
+    const skipped = [];
+
+    for (const item of results) {
+      const title = (item.title || "").trim();
+      if (!title) continue;
+
+      const existing = await Book.findOne({ where: { title } });
+      if (existing) {
+        skipped.push({ title, reason: "Mevcut" });
+        continue;
+      }
+
+      const newBook = await Book.create({
+        title,
+        category: item.category || null,
+        publisher: item.publisher || null,
+        page_count: item.page_count || null,
+        description: item.description || null,
+        cover_image: item.cover_image || null,
+      });
+
+      if (downloadImages && item.cover_image) {
+        try {
+          const coversDir = path.join(process.cwd(), "public", "covers");
+          fs.mkdirSync(coversDir, { recursive: true });
+          const filename = `${newBook.book_id}.jpg`;
+          const destPath = path.join(coversDir, filename);
+          await new Promise((resolve, reject) => {
+            const url = item.cover_image;
+            const proto = url.startsWith("https://")
+              ? require("https")
+              : require("http");
+            const file = fs.createWriteStream(destPath);
+            const reqImg = proto.get(url, (response) => {
+              if (response.statusCode !== 200) {
+                file.close();
+                fs.unlink(destPath, () => {});
+                return reject(
+                  new Error(
+                    `Image download failed: HTTP ${response.statusCode}`
+                  )
+                );
+              }
+              response.pipe(file);
+              file.on("finish", () => file.close(resolve));
+            });
+            reqImg.on("error", (err) => {
+              file.close();
+              fs.unlink(destPath, () => {});
+              reject(err);
+            });
+          });
+          const relative = `/covers/${filename}`;
+          newBook.cover_image = relative;
+          await newBook.save();
+        } catch (e) {}
+      }
+
+      const authors = Array.isArray(item.authors) ? item.authors : [];
+      for (const a of authors) {
+        const name = String(a || "").trim();
+        if (!name) continue;
+        const [authorRecord] = await Author.findOrCreate({
+          where: { full_name: name },
+          defaults: { full_name: name },
+        });
+        await newBook.addAuthor(authorRecord);
+      }
+
+      created.push({ book_id: newBook.book_id, title });
+    }
+
+    return res.status(201).json({
+      message: "Google Books'dan içe aktarma tamamlandı",
+      imported_count: created.length,
+      skipped_count: skipped.length,
+      created,
+      skipped,
+    });
+  } catch (error) {
+    console.error("importGoogleBooks error", error);
+    return res
+      .status(500)
+      .json({ error: "İçe aktarma başarısız", detail: error.message });
   }
 };

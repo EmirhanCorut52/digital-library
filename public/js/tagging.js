@@ -13,6 +13,7 @@ function tagBook() {
     modal.classList.remove("hidden");
     modal.style.display = "flex";
   }
+  document.body.style.overflow = "hidden";
   setConfirmBookButtonState(false);
   const input = document.getElementById("book-search-input");
   if (input) setTimeout(() => input.focus(), 0);
@@ -26,6 +27,7 @@ function closeBookTagModal() {
     modal.classList.add("hidden");
     modal.style.display = "none";
   }
+  document.body.style.overflow = "auto";
   setConfirmBookButtonState(false);
   if (input) input.value = "";
   if (results) results.innerHTML = "";
@@ -68,8 +70,15 @@ async function searchBooksForTag() {
       const safeTitle = String(book.title || "").replace(/'/g, "\\'");
       const item = document.createElement("div");
       item.className =
-        "flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer border-b transition";
-      item.onclick = () => selectBookTag(book.book_id, book.title);
+        "flex items-center gap-3 p-3 cursor-pointer border-b border-gray-200 transition";
+      item.onmouseenter = function () {
+        this.style.backgroundColor = "#eff6ff";
+      };
+      item.onmouseleave = function () {
+        this.style.backgroundColor = "";
+      };
+      item.onclick = () =>
+        selectBookTag(book.book_id, book.title, book.cover_image);
       const cover = book.cover_image
         ? `<img src="${book.cover_image}" alt="${safeTitle}" class="w-10 h-14 object-cover rounded flex-shrink-0">`
         : '<div class="w-10 h-14 bg-gray-200 rounded flex-shrink-0"></div>';
@@ -88,19 +97,29 @@ async function searchBooksForTag() {
   }
 }
 
-function selectBookTag(bookId, bookTitle) {
-  window.selectedTaggedBook = { book_id: bookId, title: bookTitle };
+function selectBookTag(bookId, bookTitle, coverImage) {
+  window.selectedTaggedBook = {
+    book_id: bookId,
+    title: bookTitle,
+    cover_image: coverImage,
+  };
   const display = document.getElementById("tagged-book-display");
   if (!display) return;
   display.classList.remove("hidden");
   const safeTitle = String(bookTitle || "")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+  const coverHtml = coverImage
+    ? `<img src="${coverImage}" alt="${safeTitle}" class="w-10 h-14 object-cover rounded" />`
+    : '<div class="w-10 h-14 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs"><i class="fas fa-book"></i></div>';
   display.innerHTML = `
-    <div class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3">
-      <div class="flex items-center gap-2">
-        <i class="fas fa-check-circle text-blue-600"></i>
-        <span class="text-sm font-medium text-gray-800">${safeTitle}</span>
+    <div class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3" style="background-color:#eff6ff;border:2px solid #93c5fd;">
+      <div class="flex items-center gap-3">
+        ${coverHtml}
+        <div class="flex items-center gap-2">
+          <i class="fas fa-check-circle text-blue-600"></i>
+          <span class="text-sm font-medium text-gray-800">${safeTitle}</span>
+        </div>
       </div>
       <button onclick="clearBookTag()" class="text-gray-500 hover:text-gray-700">
         <i class="fas fa-times"></i>
@@ -130,9 +149,27 @@ function clearBookTag() {
 function renderSelectedBookChip() {
   if (!window.selectedTaggedBook) return;
   const chip = document.getElementById("post-tagged-book");
-  const titleEl = document.getElementById("post-tagged-book-title");
-  if (!chip || !titleEl) return;
-  titleEl.textContent = window.selectedTaggedBook.title || "Seçilen kitap";
+  if (!chip) return;
+  const safeTitle = (window.selectedTaggedBook.title || "Seçilen kitap")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const coverHtml = window.selectedTaggedBook.cover_image
+    ? `<img src="${window.selectedTaggedBook.cover_image}" alt="${safeTitle}" class="w-10 h-14 object-cover rounded" />`
+    : '<div class="w-10 h-14 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs"><i class="fas fa-book"></i></div>';
+  chip.innerHTML = `
+    <div class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-gray-800" style="background-color: #eff6ff; border-color: #93c5fd">
+      <div class="flex items-center gap-3">
+        ${coverHtml}
+        <div class="flex items-center gap-2">
+          <i class="fas fa-book text-blue-600"></i>
+          <span class="font-semibold">${safeTitle}</span>
+        </div>
+      </div>
+      <button onclick="clearBookTag()" class="text-gray-500 hover:text-gray-700" aria-label="Tagi kaldır">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  `;
   chip.classList.remove("hidden");
 }
 
@@ -179,6 +216,7 @@ function tagUser() {
     modal.classList.remove("hidden");
     modal.style.display = "flex";
   }
+  document.body.style.overflow = "hidden";
   setConfirmUserButtonState(false);
   const input = document.getElementById("user-search-input");
   if (input) setTimeout(() => input.focus(), 0);
@@ -192,6 +230,7 @@ function closeUserTagModal() {
     modal.classList.add("hidden");
     modal.style.display = "none";
   }
+  document.body.style.overflow = "auto";
   setConfirmUserButtonState(false);
   if (input) input.value = "";
   if (results) results.innerHTML = "";
@@ -231,11 +270,17 @@ async function searchUsersForTag() {
       const uname = String(user.username || "");
       const item = document.createElement("div");
       item.className =
-        "flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer border-b transition";
+        "flex items-center gap-3 p-3 hover:bg-emerald-50 cursor-pointer border-b border-gray-200 transition";
+      item.onmouseenter = function () {
+        this.style.backgroundColor = "#d1fae5";
+      };
+      item.onmouseleave = function () {
+        this.style.backgroundColor = "";
+      };
       item.onclick = () => selectUserTag(user.user_id, uname);
       const initials = uname.substring(0, 2).toUpperCase();
       item.innerHTML = `
-        <div class="w-10 h-10 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center font-bold text-emerald-700">${initials}</div>
+        <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600">${initials}</div>
         <div class="flex-1 min-w-0">
           <h4 class="text-sm font-semibold text-gray-800 truncate">${uname}</h4>
           <p class="text-xs text-gray-500">@${uname}</p>

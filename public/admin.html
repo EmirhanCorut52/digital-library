@@ -143,8 +143,10 @@
             <div class="relative w-64">
               <input
                 type="text"
+                id="book-search-admin"
                 placeholder="Kitap ara..."
                 class="w-full border rounded pl-8 pr-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+                oninput="searchBooksAdmin()"
               />
               <i
                 class="fas fa-search absolute left-2.5 top-3 text-gray-400 text-xs"
@@ -196,6 +198,59 @@
       </main>
     </div>
 
+    <!-- Kitap Ekleme Modal -->
+    <div id="add-book-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; background-color: rgba(0, 0, 0, 0.5);">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4" style="position: relative; z-index: 51;">
+        <div class="flex justify-between items-center p-6 border-b">
+          <h3 class="text-xl font-bold text-gray-800">Yeni Kitap Ekle</h3>
+          <button onclick="closeAddBookModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        <form id="add-book-form" class="p-6 space-y-4" style="max-height: 70vh; overflow-y: auto;">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Kitap Adı *</label>
+            <input type="text" id="book-title" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="Kitap adını girin">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Yazar *</label>
+            <input type="text" id="book-author" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="Yazar adını girin">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Kategori *</label>
+            <input type="text" id="book-category" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="Kategori girin">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Yayınevi *</label>
+            <input type="text" id="book-publisher" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="Yayınevi adını girin">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Sayfa Sayısı *</label>
+            <input type="number" id="book-page-count" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="Sayfa sayısını girin">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Kısa Açıklama *</label>
+            <textarea id="book-description" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 resize-none" rows="3" placeholder="Kitabın kısa açıklamasını girin"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Kapak Görseli URL *</label>
+            <input type="text" id="book-cover-image" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="Kapak görseli URL'si">
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition">
+              <i class="fas fa-save mr-2"></i> Kitap Ekle
+            </button>
+            <button type="button" onclick="closeAddBookModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded transition">
+              İptal
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script src="js/main.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -245,7 +300,6 @@
             user.name || user.username || "Yönetici";
           document.getElementById("admin-email").innerText = user.email || "";
         } catch (error) {
-          // Fallback to localStorage if available
           const name = localStorage.getItem("user_name") || "Yönetici";
           document.getElementById("admin-name").innerText = name;
           document.getElementById("admin-email").innerText = "";
@@ -313,6 +367,38 @@
         }
       }
 
+      function searchBooksAdmin() {
+        const searchInput = document.getElementById("book-search-admin");
+        const query = (searchInput?.value || "").trim().toLowerCase();
+        const tbody = document.getElementById("books-table-body");
+        const rows = tbody.querySelectorAll("tr");
+
+        rows.forEach((row) => {
+          const titleCell = row.querySelector("td:nth-child(3)");
+          const authorCell = row.querySelector("td:nth-child(4)");
+          const categoryCell = row.querySelector("td:nth-child(5)");
+
+          if (!titleCell || !authorCell) {
+            row.style.display = "table-row";
+            return;
+          }
+
+          const title = titleCell.textContent.toLowerCase();
+          const author = authorCell.textContent.toLowerCase();
+          const category = categoryCell.textContent.toLowerCase();
+
+          if (
+            title.includes(query) ||
+            author.includes(query) ||
+            category.includes(query)
+          ) {
+            row.style.display = "table-row";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      }
+
       async function loadUsers() {
         const tbody = document.getElementById("users-table-body");
         try {
@@ -333,7 +419,7 @@
             const initials = (name || "?").substring(0, 2).toUpperCase();
             const role = user.role || "-";
             const email = user.email || "-";
-            const roleOptions = ["user", "admin", "banned"]
+            const roleOptions = ["user", "admin"]
               .map(
                 (r) =>
                   `<option value="${r}" ${
@@ -356,17 +442,8 @@
                     ${roleOptions}
                   </select>
                 </td>
-                <td class="p-4 border-b text-gray-500">${
-                  role === "banned" ? "Yasaklı" : "Aktif"
-                }</td>
+                <td class="p-4 border-b text-gray-500">Aktif</td>
                 <td class="p-4 border-b text-center flex gap-2 justify-center">
-                  <button class="text-sm px-3 py-1 rounded ${
-                    role === "banned"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }" onclick="toggleBan(${user.user_id}, '${role}')">
-                    ${role === "banned" ? "Banı Kaldır" : "Banla"}
-                  </button>
                   <button onclick="deleteUser(${
                     user.user_id
                   }, '${name}')" class="text-red-500 hover:text-red-700 p-2 transition" title="Sil">
@@ -406,11 +483,6 @@
         }
       }
 
-      async function toggleBan(userId, currentRole) {
-        const nextRole = currentRole === "banned" ? "user" : "banned";
-        await updateUserRole(userId, nextRole);
-      }
-
       async function deleteUser(userId, userName) {
         if (
           !confirm(
@@ -441,38 +513,54 @@
       }
 
       async function kitapEkleModal() {
-        const title = prompt("Kitap Adı:");
-        if (!title) return;
+        const modal = document.getElementById("add-book-modal");
+        modal.classList.remove("hidden");
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+        document.getElementById("add-book-form").reset();
+        setTimeout(() => document.getElementById("book-title").focus(), 0);
+      }
 
-        const author = prompt("Yazar:");
-        const category = prompt("Kategori:");
-        const publisher = prompt("Yayınevi:");
-        let pageCount = prompt("Sayfa Sayısı:");
-        const description = prompt("Kısa Açıklama:");
-        const coverImage = prompt("Kapak Görseli URL (opsiyonel):");
+      function closeAddBookModal() {
+        const modal = document.getElementById("add-book-modal");
+        modal.classList.add("hidden");
+        modal.style.display = "none";
+        document.body.style.overflow = "auto";
+        document.getElementById("add-book-form").reset();
+      }
 
-        pageCount = parseInt(pageCount) || 0;
+      document.getElementById("add-book-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const title = document.getElementById("book-title").value.trim();
+        const author = document.getElementById("book-author").value.trim();
+        const category = document.getElementById("book-category").value.trim();
+        const publisher = document.getElementById("book-publisher").value.trim();
+        const pageCount = parseInt(document.getElementById("book-page-count").value) || 0;
+        const description = document.getElementById("book-description").value.trim();
+        const coverImage = document.getElementById("book-cover-image").value.trim();
 
-        const btn = document.querySelector(
-          'button[onclick="kitapEkleModal()"]'
-        );
-        const originalText = btn ? btn.innerHTML : "";
-        if (btn) {
-          btn.disabled = true;
-          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ekleniyor...';
+        if (!title) {
+          alert("Lütfen kitap adını girin!");
+          return;
         }
+
+        const submitBtn = document.querySelector("#add-book-form button[type='submit']");
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ekleniyor...';
 
         try {
           const response = await authFetch("/books/add", {
             method: "POST",
             body: JSON.stringify({
               title: title,
-              author: author,
-              category: category,
-              publisher: publisher,
+              author: author || null,
+              category: category || null,
+              publisher: publisher || null,
               page_count: pageCount,
-              description: description,
-              cover_image: coverImage,
+              description: description || null,
+              cover_image: coverImage || null,
             }),
           });
 
@@ -480,22 +568,26 @@
 
           if (response.ok) {
             alert("Kitap başarıyla eklendi! 🎉");
+            closeAddBookModal();
             loadBooks();
             loadDashboardStats();
           } else {
-            console.error("Sunucu Hatası:", data);
             alert("Hata: " + (data.error || "Bilinmeyen hata"));
           }
         } catch (error) {
           console.error("Bağlantı Hatası:", error);
-          alert("Sunucuya bağlanılamadı. Terminali kontrol edin.");
+          alert("Sunucuya bağlanılamadı. Lütfen daha sonra tekrar deneyin.");
         } finally {
-          if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-          }
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
         }
-      }
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeAddBookModal();
+        }
+      });
 
       async function kitapSil(id) {
         if (!confirm("Silmek istediğinize emin misiniz?")) return;
