@@ -46,11 +46,11 @@ exports.register = async (req, res) => {
     });
 
     res.status(201).json({
-      message: "Registration successful!",
+      message: "Kayıt başarılı! Giriş yapabilirsiniz.",
       user_id: newUser.user_id,
     });
   } catch (error) {
-    res.status(500).json({ error: "Sunucu hatası oluştu." });
+    res.status(500).json({ error: "Kayıt oluşturulurulamadı." });
   }
 };
 
@@ -86,7 +86,6 @@ exports.login = async (req, res) => {
     );
 
     res.status(200).json({
-      message: "Login successful!",
       token: token,
       user: {
         id: user.user_id,
@@ -97,7 +96,7 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ error: "Sunucu hatası oluştu." });
+    res.status(500).json({ error: "Giriş yapılamadı." });
   }
 };
 
@@ -119,17 +118,14 @@ exports.forgotPassword = async (req, res) => {
       { expiresIn: "15m" }
     );
 
-    const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-    const baseURL = process.env.BASE_URL || `${protocol}://${req.get("host")}`;
-    const resetLink = `${baseURL}/api/auth/reset-password?token=${resetToken}`;
-
     res.status(200).json({
-      message:
-        "Reset link sent to your email address (Please check the terminal).",
+      message: "İşlem başarılı.",
       resetToken: resetToken,
     });
   } catch (error) {
-    res.status(500).json({ error: "İşlem başarısız oldu." });
+    res
+      .status(500)
+      .json({ error: "Şifreniz başarıyla güncellendi! Giriş yapabilirsiniz." });
   }
 };
 
@@ -168,12 +164,10 @@ exports.resetPassword = async (req, res) => {
 
     res.status(200).json({
       message:
-        "Your password has been successfully updated! You can log in with your new password.",
+        "Şifreniz başarıyla güncellendi! Yeni şifrenizle giriş yapabilirsiniz.",
     });
   } catch (error) {
-    res
-      .status(400)
-      .json({ error: "Sıfırlama bağlantısının süresi dolmuş veya geçersiz." });
+    res.status(400).json({ error: "İşlem başarısız oldu." });
   }
 };
 
@@ -191,15 +185,23 @@ exports.updateProfile = async (req, res) => {
       return res.status(404).json({ error: "Kullanıcı bulunamadı." });
     }
 
-    user.name = name || user.name;
-    user.username = username || user.username;
-    user.email = email || user.email;
-    user.bio = bio || user.bio;
+    if (req.body.name !== undefined) {
+      user.name = req.body.name;
+    }
+    if (req.body.username !== undefined) {
+      user.username = req.body.username;
+    }
+    if (req.body.email !== undefined) {
+      user.email = req.body.email;
+    }
+    if (req.body.bio !== undefined) {
+      user.bio = req.body.bio;
+    }
 
     await user.save();
 
     res.json({
-      message: "Profile updated.",
+      message: "Profil güncellendi.",
       user: {
         id: user.user_id,
         name: user.name,
@@ -220,9 +222,7 @@ exports.updateProfile = async (req, res) => {
         .json({ error: error.errors?.[0]?.message || "Geçersiz veri." });
     }
 
-    res
-      .status(500)
-      .json({ error: "Güncelleme başarısız oldu.", detail: error.message });
+    res.status(500).json({ error: "Güncelleme başarısız oldu." });
   }
 };
 
@@ -270,7 +270,7 @@ exports.changePassword = async (req, res) => {
     user.password_hash = newPasswordHash;
     await user.save();
 
-    res.json({ message: "Password changed successfully." });
+    res.json({ message: "Şifre başarıyla değiştirildi." });
   } catch (error) {
     res.status(500).json({ error: "Şifre değiştirilemedi." });
   }

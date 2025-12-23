@@ -2,7 +2,6 @@ const User = require("../models/User");
 const Book = require("../models/Book");
 const Post = require("../models/Post");
 const Comment = require("../models/Comment");
-const sequelize = require("../config/db");
 
 const ALLOWED_ROLES = ["user", "admin"];
 
@@ -13,49 +12,14 @@ exports.getDashboardStats = async (req, res) => {
     const totalPosts = await Post.count();
     const totalComments = await Comment.count();
 
-    let mostPopularBookTitle = "Henüz veri yok";
-    let mostPopularBookCommentCount = 0;
-
-    if (totalComments > 0) {
-      const popularBook = await Comment.findOne({
-        attributes: [
-          "book_id",
-          [
-            sequelize.fn("COUNT", sequelize.col("Comment.book_id")),
-            "comment_count",
-          ],
-        ],
-        include: [
-          {
-            model: Book,
-            attributes: ["title"],
-          },
-        ],
-        group: ["Comment.book_id", "Book.book_id", "Book.title"],
-        order: [[sequelize.literal("comment_count"), "DESC"]],
-      });
-
-      if (popularBook && popularBook.Book) {
-        mostPopularBookTitle = popularBook.Book.title;
-        mostPopularBookCommentCount = popularBook.dataValues.comment_count;
-      }
-    }
-
     res.status(200).json({
       books: totalBooks,
       users: totalUsers,
       posts: totalPosts,
       comments: totalComments,
-      highlights: {
-        most_discussed_book: mostPopularBookTitle,
-        comment_count: mostPopularBookCommentCount,
-      },
     });
   } catch (error) {
-    res.status(500).json({
-      error: "Raporlar oluşturulurken hata oluştu.",
-      detail: error.message,
-    });
+    res.status(500).json({ error: "Raporlar oluşturulurken hata oluştu." });
   }
 };
 
@@ -96,7 +60,10 @@ exports.updateUserRole = async (req, res) => {
     user.role = role;
     await user.save();
 
-    res.status(200).json({ message: "Rol güncellendi.", role: user.role });
+    res.status(200).json({
+      message: "Rol güncellendi.",
+      role: user.role,
+    });
   } catch (error) {
     res.status(500).json({ error: "Rol güncellenemedi." });
   }
@@ -105,6 +72,10 @@ exports.updateUserRole = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (req.userData && String(req.userData.userId) === String(id)) {
+      return res.status(400).json({ error: "Kendinizi silemezsiniz." });
+    }
 
     const user = await User.findByPk(id);
     if (!user) {
