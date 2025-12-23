@@ -32,4 +32,9 @@ const PostComment = sequelize.define(
   }
 );
 
+PostComment.associate = (models) => {
+  PostComment.belongsTo(models.Post, { foreignKey: "post_id" });
+  PostComment.belongsTo(models.User, { foreignKey: "user_id" });
+};
+
 module.exports = PostComment;

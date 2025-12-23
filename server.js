@@ -53,58 +53,13 @@ app.use("/api/search", SearchRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/authors", authorRoutes);
 
-Book.belongsToMany(Author, {
-  through: BookAuthor,
-  foreignKey: "book_id",
-  otherKey: "author_id",
+const models = { User, Book, Author, Post, PostLike, PostComment, Comment, Follow };
+
+Object.keys(models).forEach((modelName) => {
+  if (models[modelName].associate) {
+    models[modelName].associate(models);
+  }
 });
-Author.belongsToMany(Book, {
-  through: BookAuthor,
-  foreignKey: "author_id",
-  otherKey: "book_id",
-});
-
-User.hasMany(Post, { foreignKey: "user_id", onDelete: "CASCADE" });
-Post.belongsTo(User, { foreignKey: "user_id" });
-
-Book.hasMany(Post, { foreignKey: "tagged_book_id", onDelete: "SET NULL" });
-Post.belongsTo(Book, { foreignKey: "tagged_book_id" });
-
-User.hasMany(Post, {
-  foreignKey: "tagged_user_id",
-  as: "TaggedPosts",
-  onDelete: "SET NULL",
-});
-Post.belongsTo(User, { foreignKey: "tagged_user_id", as: "TaggedUser" });
-
-Post.hasMany(PostLike, { foreignKey: "post_id", onDelete: "CASCADE" });
-PostLike.belongsTo(Post, { foreignKey: "post_id" });
-User.hasMany(PostLike, { foreignKey: "user_id", onDelete: "CASCADE" });
-PostLike.belongsTo(User, { foreignKey: "user_id" });
-
-Post.hasMany(PostComment, { foreignKey: "post_id", onDelete: "CASCADE" });
-PostComment.belongsTo(Post, { foreignKey: "post_id" });
-User.hasMany(PostComment, { foreignKey: "user_id", onDelete: "CASCADE" });
-PostComment.belongsTo(User, { foreignKey: "user_id" });
-
-User.hasMany(Comment, { foreignKey: "user_id", onDelete: "CASCADE" });
-Comment.belongsTo(User, { foreignKey: "user_id" });
-
-Book.hasMany(Comment, { foreignKey: "book_id", onDelete: "CASCADE" });
-Comment.belongsTo(Book, { foreignKey: "book_id" });
-
-Follow.belongsTo(User, {
-  foreignKey: "follower_id",
-  as: "Follower",
-  onDelete: "CASCADE",
-});
-Follow.belongsTo(User, {
-  foreignKey: "following_id",
-  as: "Following",
-  onDelete: "CASCADE",
-});
-User.hasMany(Follow, { foreignKey: "follower_id", onDelete: "CASCADE" });
-User.hasMany(Follow, { foreignKey: "following_id", onDelete: "CASCADE" });
 
 app.get("/", (req, res) => {
   res.send("Library System Server is Running!");

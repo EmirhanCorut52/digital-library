@@ -40,4 +40,14 @@ const Book = sequelize.define(
   }
 );
 
+Book.associate = (models) => {
+  Book.belongsToMany(models.Author, {
+    through: "BookAuthors",
+    foreignKey: "book_id",
+    otherKey: "author_id",
+  });
+  Book.hasMany(models.Post, { foreignKey: "tagged_book_id", onDelete: "SET NULL" });
+  Book.hasMany(models.Comment, { foreignKey: "book_id", onDelete: "CASCADE" });
+};
+
 module.exports = Book;

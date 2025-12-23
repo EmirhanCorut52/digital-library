@@ -30,4 +30,9 @@ const Comment = sequelize.define(
   }
 );
 
+Comment.associate = (models) => {
+  Comment.belongsTo(models.User, { foreignKey: "user_id" });
+  Comment.belongsTo(models.Book, { foreignKey: "book_id" });
+};
+
 module.exports = Comment;

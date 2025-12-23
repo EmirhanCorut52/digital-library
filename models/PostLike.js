@@ -34,4 +34,9 @@ const PostLike = sequelize.define(
   }
 );
 
+PostLike.associate = (models) => {
+  PostLike.belongsTo(models.Post, { foreignKey: "post_id" });
+  PostLike.belongsTo(models.User, { foreignKey: "user_id" });
+};
+
 module.exports = PostLike;

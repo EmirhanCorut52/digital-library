@@ -35,4 +35,17 @@ const Follow = sequelize.define(
   }
 );
 
+Follow.associate = (models) => {
+  Follow.belongsTo(models.User, {
+    foreignKey: "follower_id",
+    as: "Follower",
+    onDelete: "CASCADE",
+  });
+  Follow.belongsTo(models.User, {
+    foreignKey: "following_id",
+    as: "Following",
+    onDelete: "CASCADE",
+  });
+};
+
 module.exports = Follow;

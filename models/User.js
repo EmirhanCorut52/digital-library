@@ -49,4 +49,18 @@ const User = sequelize.define(
   }
 );
 
+User.associate = (models) => {
+  User.hasMany(models.Post, { foreignKey: "user_id", onDelete: "CASCADE" });
+  User.hasMany(models.Post, {
+    foreignKey: "tagged_user_id",
+    as: "TaggedPosts",
+    onDelete: "SET NULL",
+  });
+  User.hasMany(models.PostLike, { foreignKey: "user_id", onDelete: "CASCADE" });
+  User.hasMany(models.PostComment, { foreignKey: "user_id", onDelete: "CASCADE" });
+  User.hasMany(models.Comment, { foreignKey: "user_id", onDelete: "CASCADE" });
+  User.hasMany(models.Follow, { foreignKey: "follower_id", onDelete: "CASCADE" });
+  User.hasMany(models.Follow, { foreignKey: "following_id", onDelete: "CASCADE" });
+};
+
 module.exports = User;
