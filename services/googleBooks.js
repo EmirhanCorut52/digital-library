@@ -16,7 +16,7 @@ function buildGoogleBooksUrl({
   if (langRestrict) params.set("langRestrict", langRestrict);
   if (hl) params.set("hl", hl);
   if (apiKey) params.set("key", apiKey);
-  return `https://www.googleapis.com/books/v1/volumes?${params.toString()}&key=AIzaSyBfBqYYB_6mfnvbyDSmsgn_TlpL1-Fq95M`;
+  return `https://www.googleapis.com/books/v1/volumes?${params.toString()}`;
 }
 
 function httpsGetJson(url, retries = 3, delay = 1000) {
