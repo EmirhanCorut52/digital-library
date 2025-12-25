@@ -6,9 +6,18 @@ exports.getAuthorBooks = async (req, res) => {
     const { id } = req.params;
 
     const author = await Author.findByPk(id, {
+      attributes: ["author_id", "full_name"],
       include: [
         {
           model: Book,
+          attributes: [
+            "book_id",
+            "title",
+            "category",
+            "page_count",
+            "cover_image",
+          ],
+          through: { attributes: [] },
         },
       ],
     });
@@ -26,10 +35,12 @@ exports.getAuthorBooks = async (req, res) => {
 exports.getAllAuthors = async (req, res) => {
   try {
     const authors = await Author.findAll({
+      attributes: ["author_id", "full_name"],
       include: [
         {
           model: Book,
           attributes: ["book_id"],
+          through: { attributes: [] },
         },
       ],
     });

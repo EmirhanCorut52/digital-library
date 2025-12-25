@@ -1,4 +1,5 @@
 const { Op } = require("sequelize");
+const sequelize = require("../config/db");
 const Book = require("../models/Book");
 const Author = require("../models/Author");
 const User = require("../models/User");

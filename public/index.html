@@ -4,11 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ana Sayfa - Dijital Kütüphane</title>
-    <link href="/output.css" rel="stylesheet" />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-      rel="stylesheet"
-    />
+    <link href="/styles.css" rel="stylesheet" />
   </head>
   <body class="bg-gray-50">
     <nav class="bg-white shadow-sm sticky top-0 z-50">
@@ -103,7 +99,6 @@
             <div id="post-tagged-book" class="hidden mt-2">
               <div
                 class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-gray-800"
-                style="background-color: #eff6ff; border-color: #93c5fd"
               >
                 <div class="flex items-center gap-2">
                   <i class="fas fa-book text-blue-600"></i>
@@ -124,13 +119,9 @@
             <div id="post-tagged-user" class="hidden mt-2">
               <div
                 class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-gray-800"
-                style="background-color: #d1fae5; border-color: #34d399"
               >
                 <div class="flex items-center gap-2">
-                  <i
-                    class="fas fa-user text-emerald-600"
-                    style="color: #047857"
-                  ></i>
+                  <i class="fas fa-user text-emerald-600"></i>
                   <span id="post-tagged-user-name" class="font-semibold"></span>
                 </div>
                 <button
@@ -275,7 +266,7 @@
                 ? `<img src="${post.Book.cover_image}" alt="${post.Book.title}" class="w-8 h-11 object-cover rounded" />`
                 : '<div class="w-8 h-11 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs"><i class="fas fa-book"></i></div>';
               chips.push(`
-              <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800 cursor-pointer hover:opacity-80 transition" style="background-color:#eff6ff;border-color:#93c5fd;" onclick="window.location.href='book-details.html?id=${post.Book.book_id}'">
+              <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800 cursor-pointer hover:opacity-80 transition" onclick="window.location.href='book-details.html?id=${post.Book.book_id}'">
                 ${bookCover}
                 <span class="truncate max-w-[200px]">${post.Book.title}</span>
               </div>
@@ -283,7 +274,7 @@
             }
             if (post.TaggedUser) {
               chips.push(`
-              <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800 cursor-pointer hover:opacity-80 transition" style="background-color:#d1fae5;border-color:#34d399;" onclick="window.location.href='user-profile.html?id=${post.TaggedUser.user_id}'">
+              <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800 cursor-pointer hover:opacity-80 transition" onclick="window.location.href='user-profile.html?id=${post.TaggedUser.user_id}'">
                 <i class="fas fa-user text-emerald-600"></i>
                 <span>@${post.TaggedUser.username}</span>
               </div>
@@ -296,7 +287,7 @@
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-600">${initials}</div>
                   <div class="leading-tight">
-                    <div style="cursor: pointer;" onclick="window.location.href='user-profile.html?id=${
+                    <div class="cursor-pointer" onclick="window.location.href='user-profile.html?id=${
                       post.User.user_id
                     }'">
                       <h4 class="font-bold text-sm hover:text-blue-600 transition">${
@@ -430,7 +421,7 @@
                 ? `<img src="${post.Book.cover_image}" alt="${post.Book.title}" class="w-8 h-11 object-cover rounded" />`
                 : '<div class="w-8 h-11 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs"><i class="fas fa-book"></i></div>';
               chips.push(`
-              <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800 cursor-pointer hover:opacity-80 transition" style="background-color:#eff6ff;border-color:#93c5fd;" onclick="window.location.href='book-details.html?id=${post.Book.book_id}'">
+              <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800 cursor-pointer hover:opacity-80 transition" onclick="window.location.href='book-details.html?id=${post.Book.book_id}'">
                 ${bookCover}
                 <span class="truncate max-w-[200px]">${post.Book.title}</span>
               </div>
@@ -438,7 +429,7 @@
             }
             if (post.TaggedUser) {
               chips.push(`
-              <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800 cursor-pointer hover:opacity-80 transition" style="background-color:#d1fae5;border-color:#34d399;" onclick="window.location.href='user-profile.html?id=${post.TaggedUser.user_id}'">
+              <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-800 cursor-pointer hover:opacity-80 transition" onclick="window.location.href='user-profile.html?id=${post.TaggedUser.user_id}'">
                 <i class="fas fa-user text-emerald-600"></i>
                 <span>@${post.TaggedUser.username}</span>
               </div>
@@ -451,7 +442,7 @@
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-600">${initials}</div>
                   <div class="leading-tight">
-                    <div style="cursor: pointer;" onclick="window.location.href='user-profile.html?id=${
+                    <div class="cursor-pointer" onclick="window.location.href='user-profile.html?id=${
                       post.User.user_id
                     }'">
                       <h4 class="font-bold text-sm hover:text-blue-600 transition">${
@@ -663,19 +654,7 @@
 
     <div
       id="book-tag-modal"
-      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]"
-      style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: none;
-        background-color: rgba(0, 0, 0, 0.5);
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-      "
+      class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-[1000]"
     >
       <div
         class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] flex flex-col"
@@ -703,8 +682,7 @@
         </div>
         <div
           id="book-search-results"
-          class="flex-1 overflow-y-auto"
-          style="max-height: 18rem"
+          class="flex-1 overflow-y-auto max-h-72"
         ></div>
         <div
           id="tagged-book-display"
@@ -731,19 +709,7 @@
 
     <div
       id="user-tag-modal"
-      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]"
-      style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: none;
-        background-color: rgba(0, 0, 0, 0.5);
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-      "
+      class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-[1000]"
     >
       <div
         class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] flex flex-col"
@@ -771,8 +737,7 @@
         </div>
         <div
           id="user-search-results"
-          class="flex-1 overflow-y-auto"
-          style="max-height: 18rem"
+          class="flex-1 overflow-y-auto max-h-72"
         ></div>
         <div
           id="tagged-user-display"

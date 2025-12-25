@@ -4,11 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kitap Detayı - Dijital Kütüphane</title>
-    <link href="/output.css" rel="stylesheet" />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-      rel="stylesheet"
-    />
+    <link href="/styles.css" rel="stylesheet" />
   </head>
   <body class="bg-gray-50 text-gray-800">
     <nav class="bg-white shadow-sm sticky top-0 z-50">
@@ -27,11 +23,7 @@
             <a href="profile.html" class="text-gray-600 hover:text-blue-600"
               ><i class="fas fa-user-circle text-2xl"></i
             ></a>
-            <a
-              href="#"
-              onclick="logout()"
-              class="text-red-500 hover:text-red-700"
-            >
+            <a onclick="logout()" class="text-red-500 hover:text-red-700">
               <i class="fas fa-sign-out-alt text-xl"></i>
             </a>
           </div>
@@ -70,9 +62,7 @@
                   >
                     Yükleniyor...
                   </h1>
-                  <div id="book-author" class="mb-4">
-                    <!-- Yazarlar buraya dinamik eklenecek -->
-                  </div>
+                  <div id="book-author" class="mb-4"></div>
                 </div>
               </div>
 
@@ -214,6 +204,18 @@
         try {
           const response = await authFetch(`/books/${currentBookId}`);
           if (!response) return;
+          if (!response.ok) {
+            let err;
+            try {
+              err = await response.json();
+            } catch (_) {
+              err = {};
+            }
+            console.error("Book details error", err);
+            document.getElementById("book-title").innerText =
+              err.error || "Kitap Bulunamadı";
+            return;
+          }
 
           const book = await response.json();
 
@@ -236,9 +238,12 @@
 
           document.getElementById("book-desc").innerText =
             book.description || "Açıklama yok.";
-          document.getElementById("book-category").innerText = book.category;
-          document.getElementById("book-page").innerText = book.page_count;
-          document.getElementById("book-publisher").innerText = book.publisher;
+          document.getElementById("book-category").innerText =
+            book.category || "Kategori yok";
+          document.getElementById("book-page").innerText =
+            book.page_count || "-";
+          document.getElementById("book-publisher").innerText =
+            book.publisher || "-";
 
           if (book.cover_image) {
             const coverImg = document.getElementById("book-cover");

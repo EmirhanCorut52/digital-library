@@ -10,7 +10,7 @@ exports.createPost = async (req, res) => {
     const { text, tagged_book_id, tagged_user_id } = req.body;
 
     if (!text) {
-      return res.status(400).json({ error: "Post text cannot be empty." });
+      return res.status(400).json({ error: "Gönderi metni boş olamaz." });
     }
 
     const payload = {

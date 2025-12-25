@@ -1,7 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
-const { DataTypes } = require("sequelize");
 const sequelize = require("./config/db");
 const dotenv = require("dotenv");
 const authRoutes = require("./routes/authRoutes");
@@ -22,18 +20,6 @@ const PostComment = require("./models/PostComment");
 const Comment = require("./models/Comment");
 const Follow = require("./models/Follow");
 
-const BookAuthor = sequelize.define(
-  "BookAuthor",
-  {
-    book_id: { type: DataTypes.INTEGER, primaryKey: true },
-    author_id: { type: DataTypes.INTEGER, primaryKey: true },
-  },
-  {
-    tableName: "BookAuthors",
-    timestamps: false,
-  }
-);
-
 dotenv.config();
 
 const app = express();
@@ -42,7 +28,6 @@ const HOST = process.env.HOST || "0.0.0.0";
 
 app.use(express.json());
 app.use(cors());
-app.use(bodyParser.json());
 app.use(express.static("public"));
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
@@ -53,16 +38,21 @@ app.use("/api/search", SearchRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/authors", authorRoutes);
 
-const models = { User, Book, Author, Post, PostLike, PostComment, Comment, Follow };
+const models = {
+  User,
+  Book,
+  Author,
+  Post,
+  PostLike,
+  PostComment,
+  Comment,
+  Follow,
+};
 
 Object.keys(models).forEach((modelName) => {
   if (models[modelName].associate) {
     models[modelName].associate(models);
   }
-});
-
-app.get("/", (req, res) => {
-  res.send("Library System Server is Running!");
 });
 
 (async () => {
@@ -73,10 +63,7 @@ app.get("/", (req, res) => {
     await sequelize.sync();
     console.log("SUCCESS: Models synchronized!");
 
-    const server = app.listen(PORT, HOST, () => {
-      const displayHost = HOST === "0.0.0.0" ? "localhost" : HOST;
-      console.log(`Server running at: http://${displayHost}:${PORT}`);
-    });
+    const server = app.listen(PORT, HOST);
 
     server.on("error", (error) => {
       console.error("SERVER ERROR:", error);

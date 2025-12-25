@@ -3,8 +3,7 @@ const router = express.Router();
 const userController = require("../controllers/userController");
 const authMiddleware = require("../middlewares/authMiddleware");
 
-router.post("/follow", authMiddleware, userController.follow);
-router.post("/unfollow", authMiddleware, userController.unfollow);
+router.post("/follow/toggle", authMiddleware, userController.toggleFollow);
 router.get(
   "/follow-status/:id",
   authMiddleware,

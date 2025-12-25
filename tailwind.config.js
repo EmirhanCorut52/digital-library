@@ -2,7 +2,11 @@
 module.exports = {
   content: ["./public/**/*.html"],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        "library-primary": "#1e40af",
+      },
+    },
   },
   safelist: [
     "bg-gray-600",

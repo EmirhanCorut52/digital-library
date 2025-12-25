@@ -1,7 +1,6 @@
 const Comment = require("../models/Comment");
 const Book = require("../models/Book");
 const User = require("../models/User");
-const sequelize = require("../config/db");
 
 exports.addComment = async (req, res) => {
   try {
@@ -17,6 +16,10 @@ exports.addComment = async (req, res) => {
       return res
         .status(400)
         .json({ error: "Puan 1 ile 5 arasında olmalıdır." });
+    }
+
+    if (!comment_text || comment_text.trim().length === 0) {
+      return res.status(400).json({ error: "Yorum metni boş olamaz." });
     }
 
     const book = await Book.findByPk(bookId);

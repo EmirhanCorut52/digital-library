@@ -2,93 +2,43 @@ const User = require("../models/User");
 const Post = require("../models/Post");
 const Follow = require("../models/Follow");
 const Comment = require("../models/Comment");
-const Sequelize = require("sequelize");
-const Op = Sequelize.Op;
+const { Op } = require("sequelize");
 
-exports.follow = async (req, res) => {
+exports.toggleFollow = async (req, res) => {
+  const followerId = req.userData?.userId;
+  const followingId = req.body.user_id;
+
+  if (!followerId) {
+    return res.status(401).json({ error: "Yetkisiz erişim!" });
+  }
+  if (!followingId) {
+    return res.status(400).json({ error: "Geçersiz kullanıcı." });
+  }
+  if (String(followerId) === String(followingId)) {
+    return res.status(400).json({ error: "Kendinizi takip edemezsiniz." });
+  }
+
   try {
-    const followerId = req.userData?.userId;
-    const followingId = req.body.user_id;
-
-    if (!followerId) {
-      return res.status(401).json({ error: "Yetkisiz erişim!" });
-    }
-
-    if (followerId == followingId) {
-      return res.status(400).json({ error: "You cannot follow yourself." });
-    }
-
-    const existingFollow = await Follow.findOne({
-      where: {
-        follower_id: followerId,
-        following_id: followingId,
-      },
+    const existing = await Follow.findOne({
+      where: { follower_id: followerId, following_id: followingId },
     });
 
-    if (existingFollow) {
+    if (existing) {
+      await existing.destroy();
       return res
-        .status(400)
-        .json({ error: "Bu kullanıcıyı zaten takip ediyorsunuz." });
+        .status(200)
+        .json({ message: "Kullanıcı takipten çıkarıldı.", isFollowing: false });
     }
 
     await Follow.create({
       follower_id: followerId,
       following_id: followingId,
     });
-
-    res.status(200).json({ message: "User followed!" });
+    return res
+      .status(200)
+      .json({ message: "Kullanıcı takip edildi.", isFollowing: true });
   } catch (error) {
-    res.status(500).json({ error: "Takip işlemi başarısız oldu." });
-  }
-};
-
-exports.unfollow = async (req, res) => {
-  try {
-    const followerId = req.userData?.userId;
-    const followingId = req.body.user_id;
-
-    if (!followerId) {
-      return res.status(401).json({ error: "Yetkisiz erişim!" });
-    }
-
-    const deleted = await Follow.destroy({
-      where: {
-        follower_id: followerId,
-        following_id: followingId,
-      },
-    });
-
-    if (!deleted) {
-      return res
-        .status(400)
-        .json({ error: "Bu kullanıcıyı takip etmiyorsunuz." });
-    }
-
-    res.status(200).json({ message: "Unfollowed." });
-  } catch (error) {
-    res.status(500).json({ error: "İşlem başarısız oldu." });
-  }
-};
-
-exports.followStatus = async (req, res) => {
-  try {
-    const followerId = req.userData?.userId;
-    const followingId = req.params.id;
-
-    if (!followerId) {
-      return res.status(401).json({ error: "Yetkisiz erişim!" });
-    }
-
-    const existingFollow = await Follow.findOne({
-      where: {
-        follower_id: followerId,
-        following_id: followingId,
-      },
-    });
-
-    res.status(200).json({ isFollowing: !!existingFollow });
-  } catch (error) {
-    res.status(500).json({ error: "Takip durumu kontrol edilemedi." });
+    return res.status(500).json({ error: "İşlem başarısız oldu." });
   }
 };
 

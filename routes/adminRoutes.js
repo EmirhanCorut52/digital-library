@@ -5,13 +5,6 @@ const authMiddleware = require("../middlewares/authMiddleware");
 const roleMiddleware = require("../middlewares/roleMiddleware");
 
 router.get(
-  "/raporlar",
-  authMiddleware,
-  roleMiddleware,
-  adminController.getDashboardStats
-);
-
-router.get(
   "/stats",
   authMiddleware,
   roleMiddleware,
