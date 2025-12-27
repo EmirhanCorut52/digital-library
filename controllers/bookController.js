@@ -1,4 +1,5 @@
 const sequelize = require("../config/db");
+const googleBooksService = require("../services/googleBooks");
 const Book = require("../models/Book");
 const Author = require("../models/Author");
 const Comment = require("../models/Comment");
@@ -156,7 +157,7 @@ exports.getPopularBooks = async (req, res) => {
         GROUP_CONCAT(a.full_name SEPARATOR ', ') as authors
       FROM Books b
       LEFT JOIN Comments c ON b.book_id = c.book_id
-      LEFT JOIN BookAuthors ba ON b.book_id = ba.book_id
+      LEFT JOIN BookAuthor ba ON b.book_id = ba.book_id
       LEFT JOIN Authors a ON ba.author_id = a.author_id
       GROUP BY b.book_id, b.title, b.cover_image, b.category
       ORDER BY comment_count DESC
@@ -183,7 +184,7 @@ exports.searchBooks = async (req, res) => {
         b.category,
         GROUP_CONCAT(a.full_name SEPARATOR ', ') as authors
       FROM Books b
-      LEFT JOIN BookAuthors ba ON b.book_id = ba.book_id
+      LEFT JOIN BookAuthor ba ON b.book_id = ba.book_id
       LEFT JOIN Authors a ON ba.author_id = a.author_id
       WHERE b.title LIKE :like OR b.category LIKE :like OR a.full_name LIKE :like
       GROUP BY b.book_id, b.title, b.cover_image, b.category
@@ -198,5 +199,60 @@ exports.searchBooks = async (req, res) => {
     res.json(results);
   } catch (error) {
     res.status(500).json({ error: "Arama işlemi başarısız oldu" });
+  }
+};
+
+exports.importFromGoogle = async (req, res) => {
+  try {
+    const { query } = req.body;
+
+    if (!query) {
+      return res.status(400).json({ error: "Lütfen bir arama terimi girin." });
+    }
+
+    const booksFromGoogle = await googleBooksService.searchBooks(query);
+
+    if (booksFromGoogle.length === 0) {
+      return res.status(404).json({ error: "Google'da kitap bulunamadı." });
+    }
+
+    let addedCount = 0;
+
+    for (const item of booksFromGoogle) {
+      const existingBook = await Book.findOne({
+        where: { title: item.title },
+      });
+
+      if (!existingBook) {
+        const newBook = await Book.create({
+          title: item.title,
+          description: item.description,
+          page_count: item.page_count,
+          publisher: item.publisher,
+          cover_image: item.cover_image,
+          category: item.category,
+        });
+
+        if (item.authors && item.authors.length > 0) {
+          for (const authorName of item.authors) {
+            const [author] = await Author.findOrCreate({
+              where: { full_name: authorName },
+              defaults: { full_name: authorName },
+            });
+            await newBook.addAuthor(author);
+          }
+        }
+        addedCount++;
+      }
+    }
+
+    res.status(200).json({
+      message: "İçe aktarma tamamlandı.",
+      found: booksFromGoogle.length,
+      saved: addedCount,
+    });
+  } catch (error) {
+    console.error("Google Import Hatası:", error);
+    res.status(500).json({ error: "Kitaplar içe aktarılırken hata oluştu." });
   }
 };

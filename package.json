@@ -16,6 +16,7 @@
   "type": "commonjs",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.1.0",
+    "axios": "^1.7.9",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.1",
     "cors": "^2.8.5",

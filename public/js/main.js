@@ -1,3 +1,188 @@
+// Google Books'tan kitap arama ve ekleme
+document.addEventListener("DOMContentLoaded", () => {
+  const searchBtn = document.getElementById("google-books-search-btn");
+  const queryInput = document.getElementById("google-books-query");
+  const resultsDiv = document.getElementById("google-books-results");
+  const listDiv = document.getElementById("google-books-list");
+
+  if (searchBtn && queryInput && resultsDiv && listDiv) {
+    searchBtn.addEventListener("click", async () => {
+      const query = queryInput.value.trim();
+      if (!query) {
+        alert("Lütfen bir arama terimi girin.");
+        return;
+      }
+      searchBtn.disabled = true;
+      searchBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin mr-2"></i> Aranıyor...';
+      try {
+        const res = await authFetch("/books/import", {
+          method: "POST",
+          body: JSON.stringify({ query }),
+        });
+        if (!res || !res.ok) {
+          alert("Google Books araması başarısız oldu.");
+          resultsDiv.classList.add("hidden");
+          return;
+        }
+        const data = await res.json();
+        if (data.error || !data.found) {
+          alert(data.error || "Sonuç bulunamadı.");
+          resultsDiv.classList.add("hidden");
+          return;
+        }
+        // Sonuçları çekmek için tekrar Google Books servisine istek at
+        const booksRes = await fetch(
+          `/api/google-books?q=${encodeURIComponent(query)}`
+        );
+        const books = booksRes.ok ? await booksRes.json() : [];
+        listDiv.innerHTML =
+          Array.isArray(books) && books.length > 0
+            ? books
+                .map(
+                  (book) => `
+              <div class="flex gap-3 p-3 bg-gray-50 rounded shadow items-center">
+                <img src="${
+                  book.cover_image || ""
+                }" alt="Kapak" class="w-16 h-24 object-cover rounded border" onerror="this.src='https://via.placeholder.com/80x120?text=No+Image'" />
+                <div class="flex-1">
+                  <div class="font-bold">${book.title}</div>
+                  <div class="text-xs text-gray-600 mb-1">${(
+                    book.authors || []
+                  ).join(", ")}</div>
+                  <div class="text-xs text-gray-500">${
+                    book.publisher || ""
+                  } | ${book.published_date || ""}</div>
+                  <div class="text-xs text-gray-500">${
+                    book.category || ""
+                  }</div>
+                  <button class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs" onclick='addBookFromGoogle(${JSON.stringify(
+                    book
+                  )})'>Ekle</button>
+                </div>
+              </div>
+            `
+                )
+                .join("")
+            : '<div class="p-3 text-gray-500">Sonuç bulunamadı.</div>';
+        resultsDiv.classList.remove("hidden");
+      } catch (e) {
+        alert("Google Books araması sırasında hata oluştu.");
+        resultsDiv.classList.add("hidden");
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.innerHTML =
+          '<i class="fas fa-search mr-2"></i> Google Books\'ta Ara';
+      }
+    });
+  }
+});
+
+// Google Books arama fonksiyonu (modal için)
+document.addEventListener("DOMContentLoaded", () => {
+  const searchBtn = document.getElementById("google-books-search-btn");
+  const queryInput = document.getElementById("google-books-query");
+  const resultsDiv = document.getElementById("google-books-results");
+  const listDiv = document.getElementById("google-books-list");
+
+  if (searchBtn && queryInput && resultsDiv && listDiv) {
+    searchBtn.addEventListener("click", async () => {
+      const query = queryInput.value.trim();
+      if (!query) {
+        alert("Lütfen bir arama terimi girin.");
+        return;
+      }
+      searchBtn.disabled = true;
+      searchBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin mr-2"></i> Aranıyor...';
+      try {
+        const res = await authFetch("/books/import", {
+          method: "POST",
+          body: JSON.stringify({ query }),
+        });
+        if (!res || !res.ok) {
+          alert("Google Books araması başarısız oldu.");
+          resultsDiv.classList.add("hidden");
+          return;
+        }
+        const data = await res.json();
+        if (data.error || !data.found) {
+          alert(data.error || "Sonuç bulunamadı.");
+          resultsDiv.classList.add("hidden");
+          return;
+        }
+        // Sonuçları çekmek için tekrar Google Books servisine istek at
+        const booksRes = await fetch(
+          `/api/google-books?q=${encodeURIComponent(query)}`
+        );
+        const books = booksRes.ok ? await booksRes.json() : [];
+        listDiv.innerHTML =
+          Array.isArray(books) && books.length > 0
+            ? books
+                .map(
+                  (book) => `
+              <div class="flex gap-3 p-3 bg-gray-50 rounded shadow items-center">
+                <img src="${
+                  book.cover_image || ""
+                }" alt="Kapak" class="w-16 h-24 object-cover rounded border" onerror="this.src='https://via.placeholder.com/80x120?text=No+Image'" />
+                <div class="flex-1">
+                  <div class="font-bold">${book.title}</div>
+                  <div class="text-xs text-gray-600 mb-1">${(
+                    book.authors || []
+                  ).join(", ")}</div>
+                  <div class="text-xs text-gray-500">${
+                    book.publisher || ""
+                  } | ${book.published_date || ""}</div>
+                  <div class="text-xs text-gray-500">${
+                    book.category || ""
+                  }</div>
+                  <button class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs" onclick='addBookFromGoogle(${JSON.stringify(
+                    book
+                  )})'>Ekle</button>
+                </div>
+              </div>
+            `
+                )
+                .join("")
+            : '<div class="p-3 text-gray-500">Sonuç bulunamadı.</div>';
+        resultsDiv.classList.remove("hidden");
+      } catch (e) {
+        alert("Google Books araması sırasında hata oluştu.");
+        resultsDiv.classList.add("hidden");
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = '<i class="fas fa-search mr-2"></i> Ara';
+      }
+    });
+  }
+});
+
+// Google Books'tan gelen kitabı ekle
+async function addBookFromGoogle(book) {
+  if (!book) return;
+  try {
+    const res = await authFetch("/books/add", {
+      method: "POST",
+      body: JSON.stringify({
+        title: book.title,
+        authors: book.authors,
+        category: book.category,
+        publisher: book.publisher,
+        page_count: book.page_count,
+        description: book.description,
+        cover_image: book.cover_image,
+      }),
+    });
+    if (res && res.ok) {
+      alert("Kitap başarıyla eklendi!");
+    } else {
+      const data = await res.json();
+      alert(data.error || "Kitap eklenemedi.");
+    }
+  } catch (e) {
+    alert("Kitap eklenirken hata oluştu.");
+  }
+}
 const API_URL = "/api";
 
 function checkAuth() {

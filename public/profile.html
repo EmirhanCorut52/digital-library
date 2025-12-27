@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profilim - Dijital Kütüphane</title>
+    <link rel="icon" type="image/x-icon" href="img/logo.ico" />
     <link href="/styles.css" rel="stylesheet" />
   </head>
   <body class="bg-gray-50">
@@ -124,21 +125,21 @@
         <button
           onclick="switchTab('comments')"
           id="tab-comments"
-          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focsus:outline-none whitespace-nowrap"
+          class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap focus:outline-none transition-colors"
         >
           Kitap Yorumlarım
         </button>
         <button
           onclick="switchTab('following')"
           id="tab-following"
-          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
+          class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap focus:outline-none transition-colors"
         >
           Takip Edilenler
         </button>
         <button
           onclick="switchTab('followers')"
           id="tab-followers"
-          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
+          class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap focus:outline-none transition-colors"
         >
           Takipçiler
         </button>
@@ -157,7 +158,6 @@
           Henüz kimseyi takip etmiyorsunuz.
         </p>
       </div>
-
       <div id="content-followers" class="hidden">
         <p class="text-gray-500 text-center col-span-2">
           Henüz takipçiniz yok.
@@ -179,13 +179,13 @@
           btn.classList.remove("border-blue-600", "text-blue-600");
           btn.classList.add("border-transparent", "text-gray-500");
         });
-
         document
           .getElementById("content-" + tabName)
           .classList.remove("hidden");
         const activeBtn = document.getElementById("tab-" + tabName);
         activeBtn.classList.remove("border-transparent", "text-gray-500");
         activeBtn.classList.add("border-blue-600", "text-blue-600");
+        activeBtn.classList.add("hover:text-blue-600");
 
         if (tabName === "comments" && !window.commentsLoaded) {
           const userResponse = authFetch("/auth/me").then(async (res) => {
@@ -344,7 +344,9 @@
                         : ""
                     }
                     <div class="flex items-center gap-4 text-gray-500 text-sm">
-                        <span><i class="far fa-heart mr-1"></i> 0 Beğeni</span>
+                        <span><i class="far fa-heart mr-1"></i> ${
+                          post.likeCount || 0
+                        } Beğeni</span>
                     </div>
                 </div>
                 `;
@@ -406,7 +408,7 @@
                                 <i class="fas fa-book"></i>
                             </div>
                             <div class="flex-1 ml-3">
-                                <h4 class="font-bold text-sm">${bookTitle}</h4>
+                                <h4 class="font-bold text-sm"><a href="book-details.html?id=${comment.book_id}" class="hover:underline text-blue-600">${bookTitle}</a></h4>
                                 <p class="text-xs text-gray-500">${author} • ${date}</p>
                             </div>
                         </div>
@@ -462,12 +464,9 @@
                         ${initial}
                     </div>
                     <div class="flex-1">
-                        <h4 class="font-bold text-sm">${name}</h4>
+                        <h4 class="font-bold text-sm"><a href="user-profile.html?id=${user.user_id}" class="hover:underline text-blue-600">${name}</a></h4>
                         <p class="text-xs text-gray-500">@${user.username}</p>
                     </div>
-                    <button class="px-4 py-2 border border-gray-300 rounded-full text-sm hover:bg-gray-50 transition">
-                        Following
-                    </button>
                 </div>
                 `;
             container.innerHTML += html;
@@ -506,7 +505,7 @@
                         ${initial}
                     </div>
                     <div class="flex-1">
-                        <h4 class="font-bold text-sm">${name}</h4>
+                        <h4 class="font-bold text-sm"><a href="user-profile.html?id=${user.user_id}" class="hover:underline text-blue-600">${name}</a></h4>
                         <p class="text-xs text-gray-500">@${user.username}</p>
                     </div>
                 </div>

@@ -42,7 +42,7 @@ const Book = sequelize.define(
 
 Book.associate = (models) => {
   Book.belongsToMany(models.Author, {
-    through: { model: "BookAuthors", timestamps: false },
+    through: { model: "BookAuthor", timestamps: false },
     foreignKey: "book_id",
     otherKey: "author_id",
   });

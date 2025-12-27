@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kullanıcı Profili - Dijital Kütüphane</title>
+    <link rel="icon" type="image/x-icon" href="img/logo.ico" />
     <link href="/styles.css" rel="stylesheet" />
   </head>
   <body class="bg-gray-50">
@@ -122,28 +123,28 @@
         <button
           onclick="switchTab('posts')"
           id="tab-posts"
-          class="px-6 py-3 border-b-2 border-blue-600 text-blue-600 font-semibold focus:outline-none whitespace-nowrap"
+          class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap focus:outline-none transition-colors"
         >
           Gönderilerim
         </button>
         <button
           onclick="switchTab('comments')"
           id="tab-comments"
-          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
+          class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap focus:outline-none transition-colors"
         >
           Kitap Yorumlarım
         </button>
         <button
           onclick="switchTab('following')"
           id="tab-following"
-          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
+          class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap focus:outline-none transition-colors"
         >
           Takip Edilenler
         </button>
         <button
           onclick="switchTab('followers')"
           id="tab-followers"
-          class="px-6 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none whitespace-nowrap"
+          class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap focus:outline-none transition-colors"
         >
           Takipçiler
         </button>
@@ -230,6 +231,9 @@
           }) - Dijital Kütüphane`;
           fullnameEl.innerText = user.name || user.username;
           usernameEl.innerText = "@" + user.username;
+          document.title = `${user.name || user.username} (@${
+            user.username
+          }) - Dijital Kütüphane`;
           dateEl.innerText =
             "Üyelik Tarihi: " +
             new Date(user.created_at).toLocaleDateString("tr-TR");
@@ -284,6 +288,7 @@
         const activeBtn = document.getElementById("tab-" + tabName);
         activeBtn.classList.remove("border-transparent", "text-gray-500");
         activeBtn.classList.add("border-blue-600", "text-blue-600");
+        activeBtn.classList.add("hover:text-blue-600");
 
         const userId = new URLSearchParams(window.location.search).get("id");
 
@@ -346,30 +351,32 @@
             }
 
             const html = `
-                <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
-                            ${firstLetter}
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-sm">${username}</h4>
-                            <p class="text-xs text-gray-500">${date}</p>
-                        </div>
-                    </div>
-                    <p class="text-gray-800 mb-3 whitespace-pre-line">${
-                      post.post_text
-                    }</p>
-                    ${
-                      chips.length
-                        ? `<div class="flex flex-wrap gap-2 mb-3">${chips.join(
-                            ""
-                          )}</div>`
-                        : ""
-                    }
-                    <div class="flex items-center gap-4 text-gray-500 text-sm">
-                        <span><i class="far fa-heart mr-1"></i> 0 Beğeni</span>
-                    </div>
-                </div>
+                      <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100">
+                          <div class="flex items-center gap-3 mb-3">
+                              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
+                                  ${firstLetter}
+                              </div>
+                              <div>
+                                  <h4 class="font-bold text-sm">${username}</h4>
+                                  <p class="text-xs text-gray-500">${date}</p>
+                              </div>
+                          </div>
+                          <p class="text-gray-800 mb-3 whitespace-pre-line">${
+                            post.post_text
+                          }</p>
+                          ${
+                            chips.length
+                              ? `<div class="flex flex-wrap gap-2 mb-3">${chips.join(
+                                  ""
+                                )}</div>`
+                              : ""
+                          }
+                          <div class="flex items-center gap-4 text-gray-500 text-sm">
+                              <span><i class="far fa-heart mr-1"></i> ${
+                                post.likeCount || 0
+                              } Beğeni</span>
+                          </div>
+                      </div>
                 `;
             container.innerHTML += html;
           });
@@ -419,19 +426,21 @@
 
             const html = `
                 <div class="bg-white rounded-lg shadow p-5 mb-4 border border-gray-100">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center font-bold text-green-600">
-                            <i class="fas fa-book"></i>
-                        </div>
-                        <div class="flex-1 ml-3">
-                            <h4 class="font-bold text-sm">${bookTitle}</h4>
-                            <p class="text-xs text-gray-500">${author} • ${date}</p>
-                        </div>
-                        <div class="flex text-sm">
-                            ${starsHtml}
-                        </div>
+                  <div class="flex justify-between items-start mb-3">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center font-bold text-green-600">
+                      <i class="fas fa-book"></i>
                     </div>
-                    <p class="text-gray-800 whitespace-pre-line">${comment.comment_text}</p>
+                    <div class="flex-1 ml-3">
+                      <h4 class="font-bold text-sm">
+                        <a href="book-details.html?id=${comment.book_id}" class="hover:underline text-blue-600">${bookTitle}</a>
+                      </h4>
+                      <p class="text-xs text-gray-500">${author} • ${date}</p>
+                    </div>
+                    <div class="flex text-sm">
+                      ${starsHtml}
+                    </div>
+                  </div>
+                  <p class="text-gray-800 whitespace-pre-line">${comment.comment_text}</p>
                 </div>
                 `;
             container.innerHTML += html;
@@ -466,13 +475,15 @@
 
             const html = `
                 <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4">
-                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
-                        ${initial}
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="font-bold text-sm">${name}</h4>
-                        <p class="text-xs text-gray-500">@${user.username}</p>
-                    </div>
+                  <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
+                    ${initial}
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-bold text-sm">
+                      <a href="user-profile.html?id=${user.user_id}" class="hover:underline text-blue-600">${name}</a>
+                    </h4>
+                    <p class="text-xs text-gray-500">@${user.username}</p>
+                  </div>
                 </div>
                 `;
             container.innerHTML += html;
@@ -506,13 +517,15 @@
 
             const html = `
                 <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4">
-                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center font-bold text-green-600">
-                        ${initial}
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="font-bold text-sm">${name}</h4>
-                        <p class="text-xs text-gray-500">@${user.username}</p>
-                    </div>
+                  <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center font-bold text-green-600">
+                    ${initial}
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-bold text-sm">
+                      <a href="user-profile.html?id=${user.user_id}" class="hover:underline text-blue-600">${name}</a>
+                    </h4>
+                    <p class="text-xs text-gray-500">@${user.username}</p>
+                  </div>
                 </div>
                 `;
             container.innerHTML += html;
