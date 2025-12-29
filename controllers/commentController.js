@@ -12,14 +12,19 @@ exports.addComment = async (req, res) => {
       return res.status(401).json({ error: "Yetkisiz erişim!" });
     }
 
-    if (rating < 1 || rating > 5) {
+    if (!comment_text || comment_text.trim().length === 0) {
+      return res.status(400).json({ error: "Yorum metni boş olamaz." });
+    }
+
+    if (rating === null || rating === undefined) {
+      return res.status(400).json({ error: "Puan gereklidir." });
+    }
+
+    const parsedRating = parseInt(rating, 10);
+    if (isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
       return res
         .status(400)
         .json({ error: "Puan 1 ile 5 arasında olmalıdır." });
-    }
-
-    if (!comment_text || comment_text.trim().length === 0) {
-      return res.status(400).json({ error: "Yorum metni boş olamaz." });
     }
 
     const book = await Book.findByPk(bookId);
@@ -32,8 +37,8 @@ exports.addComment = async (req, res) => {
     const newComment = await Comment.create({
       book_id: bookId,
       user_id: user_id,
-      comment_text: comment_text,
-      rating: rating,
+      comment_text: comment_text.trim(),
+      rating: parsedRating,
     });
 
     res.status(201).json({
@@ -41,6 +46,7 @@ exports.addComment = async (req, res) => {
       comment: newComment,
     });
   } catch (error) {
+    console.error("Add comment error:", error);
     res.status(500).json({ error: "Yorum eklenirken hata oluştu." });
   }
 };
@@ -61,6 +67,7 @@ exports.getBookComments = async (req, res) => {
 
     res.status(200).json(comments);
   } catch (error) {
+    console.error("Get book comments error:", error);
     res.status(500).json({ error: "Yorumlar yüklenemedi." });
   }
 };
@@ -71,7 +78,7 @@ exports.getUserComments = async (req, res) => {
 
     const rows = await Comment.findAll({
       where: { user_id: userId },
-      attributes: ["comment_id", "comment_text", "rating", "createdAt"],
+      attributes: ["comment_id", "comment_text", "rating", "created_at"],
       include: [
         {
           model: Book,
@@ -85,14 +92,14 @@ exports.getUserComments = async (req, res) => {
           ],
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [["created_at", "DESC"]],
     });
 
     const comments = rows.map((c) => ({
       comment_id: c.comment_id,
       comment_text: c.comment_text,
       rating: c.rating,
-      created_at: c.createdAt,
+      created_at: c.created_at,
       book_title: c.Book ? c.Book.title : null,
       book_author:
         c.Book && c.Book.Authors && c.Book.Authors.length > 0
@@ -102,7 +109,8 @@ exports.getUserComments = async (req, res) => {
 
     res.status(200).json(comments);
   } catch (error) {
-    res.status(500).json({ error: "Comments could not be loaded." });
+    console.error("Get user comments error:", error);
+    res.status(500).json({ error: "Yorumlar yüklenemedi." });
   }
 };
 
@@ -127,6 +135,7 @@ exports.deleteComment = async (req, res) => {
     await comment.destroy();
     res.status(200).json({ message: "Yorum başarıyla silindi." });
   } catch (error) {
+    console.error("Delete comment error:", error);
     res.status(500).json({ error: "Yorum silinirken hata oluştu." });
   }
 };

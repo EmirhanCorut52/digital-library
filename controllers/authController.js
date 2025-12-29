@@ -2,6 +2,11 @@ const { Op } = require("sequelize");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const {
+  validatePassword,
+  validateEmail,
+  validateUsername,
+} = require("../utils/validators");
 
 exports.register = async (req, res) => {
   try {
@@ -11,16 +16,19 @@ exports.register = async (req, res) => {
       return res.status(400).json({ error: "Lütfen tüm alanları doldurun." });
     }
 
-    if (password.length < 8) {
-      return res
-        .status(400)
-        .json({ error: "Şifre en az 8 karakter olmalıdır." });
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ error: passwordValidation.error });
     }
 
-    if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
-      return res
-        .status(400)
-        .json({ error: "Şifre harf ve rakam içermelidir." });
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json({ error: emailValidation.error });
+    }
+
+    const usernameValidation = validateUsername(username);
+    if (!usernameValidation.isValid) {
+      return res.status(400).json({ error: usernameValidation.error });
     }
 
     const existingUser = await User.findOne({
@@ -50,6 +58,7 @@ exports.register = async (req, res) => {
       user_id: newUser.user_id,
     });
   } catch (error) {
+    console.error("register error", error);
     res.status(500).json({ error: "Kayıt oluşturulurulamadı." });
   }
 };
@@ -96,6 +105,7 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("login error", error);
     res.status(500).json({ error: "Giriş yapılamadı." });
   }
 };
@@ -119,13 +129,12 @@ exports.forgotPassword = async (req, res) => {
     );
 
     res.status(200).json({
-      message: "İşlem başarılı.",
+      message:
+        "Şifreniz başarıyla sıfırlandı! Yeni şifrenizle giriş yapabilirsiniz.",
       resetToken: resetToken,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Şifreniz başarıyla güncellendi! Giriş yapabilirsiniz." });
+    res.status(500).json({ error: "Şifre sıfırlama işlemi başarısız oldu." });
   }
 };
 
@@ -137,16 +146,9 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ error: "Geçersiz istek." });
     }
 
-    if (new_password.length < 8) {
-      return res
-        .status(400)
-        .json({ error: "Şifre en az 8 karakter olmalıdır." });
-    }
-
-    if (!/[a-zA-Z]/.test(new_password) || !/\d/.test(new_password)) {
-      return res
-        .status(400)
-        .json({ error: "Şifre harf ve rakam içermelidir." });
+    const passwordValidation = validatePassword(new_password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ error: passwordValidation.error });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -185,17 +187,17 @@ exports.updateProfile = async (req, res) => {
       return res.status(404).json({ error: "Kullanıcı bulunamadı." });
     }
 
-    if (req.body.name !== undefined) {
-      user.name = req.body.name;
+    if (name !== undefined) {
+      user.name = name;
     }
-    if (req.body.username !== undefined) {
-      user.username = req.body.username;
+    if (username !== undefined) {
+      user.username = username;
     }
-    if (req.body.email !== undefined) {
-      user.email = req.body.email;
+    if (email !== undefined) {
+      user.email = email;
     }
-    if (req.body.bio !== undefined) {
-      user.bio = req.body.bio;
+    if (bio !== undefined) {
+      user.bio = bio;
     }
 
     await user.save();
@@ -222,6 +224,7 @@ exports.updateProfile = async (req, res) => {
         .json({ error: error.errors?.[0]?.message || "Geçersiz veri." });
     }
 
+    console.error("Update profile error:", error);
     res.status(500).json({ error: "Güncelleme başarısız oldu." });
   }
 };
@@ -241,16 +244,9 @@ exports.changePassword = async (req, res) => {
         .json({ error: "Mevcut şifre ve yeni şifre gereklidir." });
     }
 
-    if (newPassword.length < 8) {
-      return res
-        .status(400)
-        .json({ error: "Yeni şifre en az 8 karakter olmalıdır." });
-    }
-
-    if (!/[a-zA-Z]/.test(newPassword) || !/\d/.test(newPassword)) {
-      return res
-        .status(400)
-        .json({ error: "Şifre harf ve rakam içermelidir." });
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ error: passwordValidation.error });
     }
 
     const user = await User.findByPk(userId);
@@ -272,6 +268,7 @@ exports.changePassword = async (req, res) => {
 
     res.json({ message: "Şifre başarıyla değiştirildi." });
   } catch (error) {
+    console.error("Change password error:", error);
     res.status(500).json({ error: "Şifre değiştirilemedi." });
   }
 };
@@ -300,6 +297,7 @@ exports.getProfile = async (req, res) => {
     }
     res.json(user);
   } catch (error) {
+    console.error("Get profile error:", error);
     res.status(500).json({ error: "Profil bilgileri alınamadı." });
   }
 };

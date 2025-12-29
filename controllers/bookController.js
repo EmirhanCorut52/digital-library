@@ -1,4 +1,5 @@
 const sequelize = require("../config/db");
+const { Op, QueryTypes } = require("sequelize");
 const googleBooksService = require("../services/googleBooks");
 const Book = require("../models/Book");
 const Author = require("../models/Author");
@@ -65,6 +66,7 @@ exports.addBook = async (req, res) => {
       book: bookWithAuthors,
     });
   } catch (error) {
+    console.error("Add book error:", error);
     res.status(500).json({ error: "Kitap eklenirken hata oluştu." });
   }
 };
@@ -82,6 +84,7 @@ exports.getAllBooks = async (req, res) => {
     });
     res.status(200).json(books);
   } catch (error) {
+    console.error("Get all books error:", error);
     res.status(500).json({ error: "Kitaplar getirilemedi." });
   }
 };
@@ -120,6 +123,7 @@ exports.getBookDetails = async (req, res) => {
 
     res.status(200).json(payload);
   } catch (error) {
+    console.error("Get book details error:", error);
     res.status(500).json({
       error: "Kitap detayları getirilemedi.",
     });
@@ -141,32 +145,8 @@ exports.deleteBook = async (req, res) => {
       message: "Kitap başarıyla silindi.",
     });
   } catch (error) {
+    console.error("Delete book error:", error);
     res.status(500).json({ error: "Kitap silinirken hata oluştu." });
-  }
-};
-
-exports.getPopularBooks = async (req, res) => {
-  try {
-    const [results] = await sequelize.query(`
-      SELECT 
-        b.book_id, 
-        b.title, 
-        b.cover_image,
-        b.category,
-        COUNT(c.comment_id) as comment_count,
-        GROUP_CONCAT(a.full_name SEPARATOR ', ') as authors
-      FROM Books b
-      LEFT JOIN Comments c ON b.book_id = c.book_id
-      LEFT JOIN BookAuthor ba ON b.book_id = ba.book_id
-      LEFT JOIN Authors a ON ba.author_id = a.author_id
-      GROUP BY b.book_id, b.title, b.cover_image, b.category
-      ORDER BY comment_count DESC
-      LIMIT 5
-    `);
-
-    res.json(results);
-  } catch (error) {
-    res.status(500).json({ error: "Popüler kitaplar yüklenemedi." });
   }
 };
 
@@ -175,29 +155,67 @@ exports.searchBooks = async (req, res) => {
     const { q } = req.query;
     if (!q) return res.json([]);
 
-    const [results] = await sequelize.query(
-      `
-      SELECT 
-        b.book_id,
-        b.title,
-        b.cover_image,
-        b.category,
-        GROUP_CONCAT(a.full_name SEPARATOR ', ') as authors
-      FROM Books b
-      LEFT JOIN BookAuthor ba ON b.book_id = ba.book_id
-      LEFT JOIN Authors a ON ba.author_id = a.author_id
-      WHERE b.title LIKE :like OR b.category LIKE :like OR a.full_name LIKE :like
-      GROUP BY b.book_id, b.title, b.cover_image, b.category
-      ORDER BY b.title ASC
-      LIMIT 25
-      `,
-      {
-        replacements: { like: `%${q}%` },
-      }
-    );
+    const books = await Book.findAll({
+      attributes: ["book_id", "title", "cover_image", "category"],
+      include: [
+        {
+          model: Author,
+          attributes: ["full_name"],
+          through: { attributes: [] },
+          required: false,
+        },
+      ],
+      where: {
+        [Op.or]: [
+          { title: { [Op.like]: `%${q}%` } },
+          { category: { [Op.like]: `%${q}%` } },
+        ],
+      },
+      order: [["title", "ASC"]],
+      limit: 25,
+      subQuery: false,
+    });
+
+    if (books.length < 25) {
+      const authorBooks = await sequelize.query(
+        `SELECT DISTINCT b.book_id, b.title, b.cover_image, b.category
+         FROM Books b
+         JOIN BookAuthor ba ON b.book_id = ba.book_id
+         JOIN Authors a ON ba.author_id = a.author_id
+         WHERE a.full_name LIKE :searchTerm
+         LIMIT :limit`,
+        {
+          replacements: { searchTerm: `%${q}%`, limit: 25 - books.length },
+          type: QueryTypes.SELECT,
+        }
+      );
+
+      const bookIds = books.map((b) => b.book_id);
+      const filteredAuthorBooks = authorBooks.filter(
+        (ab) => !bookIds.includes(ab.book_id)
+      );
+      books.push(...filteredAuthorBooks);
+    }
+
+    const results = books.map((book) => {
+      const bookData = typeof book.toJSON === "function" ? book.toJSON() : book;
+      const authors =
+        bookData.Authors && bookData.Authors.length > 0
+          ? bookData.Authors.map((a) => a.full_name).join(", ")
+          : null;
+
+      return {
+        book_id: bookData.book_id,
+        title: bookData.title,
+        cover_image: bookData.cover_image,
+        category: bookData.category,
+        authors: authors,
+      };
+    });
 
     res.json(results);
   } catch (error) {
+    console.error("Search books error:", error);
     res.status(500).json({ error: "Arama işlemi başarısız oldu" });
   }
 };

@@ -38,6 +38,10 @@ exports.toggleFollow = async (req, res) => {
       .status(200)
       .json({ message: "Kullanıcı takip edildi.", isFollowing: true });
   } catch (error) {
+    if (error.name === "SequelizeValidationError") {
+      return res.status(400).json({ error: error.message });
+    }
+    console.error("Toggle follow error:", error);
     return res.status(500).json({ error: "İşlem başarısız oldu." });
   }
 };
@@ -92,6 +96,7 @@ exports.getProfile = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Get profile error:", error);
     res.status(500).json({ error: "Profil yüklenemedi." });
   }
 };
@@ -113,6 +118,7 @@ exports.getFollowing = async (req, res) => {
 
     res.status(200).json(following.map((f) => f.Following));
   } catch (error) {
+    console.error("Get following error:", error);
     res.status(500).json({ error: "Takip listesi yüklenemedi." });
   }
 };
@@ -134,6 +140,7 @@ exports.getFollowers = async (req, res) => {
 
     res.status(200).json(followers.map((f) => f.Follower));
   } catch (error) {
+    console.error("Get followers error:", error);
     res.status(500).json({ error: "Takipçi listesi yüklenemedi." });
   }
 };
@@ -157,6 +164,7 @@ exports.searchUsers = async (req, res) => {
 
     res.status(200).json(users);
   } catch (error) {
+    console.error("Search users error:", error);
     res.status(500).json({ error: "Kullanıcı arama hatası." });
   }
 };
@@ -179,6 +187,7 @@ exports.getFollowStatus = async (req, res) => {
 
     res.status(200).json({ isFollowing: !!follow });
   } catch (error) {
+    console.error("Get follow status error:", error);
     res.status(500).json({ error: "Takip durumu kontrol hatası." });
   }
 };

@@ -26,9 +26,20 @@ exports.createPost = async (req, res) => {
       : null;
 
     if (parsedBookId) {
+      const book = await Book.findByPk(parsedBookId);
+      if (!book) {
+        return res.status(404).json({ error: "Etiketlenen kitap bulunamadı." });
+      }
       payload.tagged_book_id = parsedBookId;
     }
+
     if (parsedTaggedUserId) {
+      const user = await User.findByPk(parsedTaggedUserId);
+      if (!user) {
+        return res
+          .status(404)
+          .json({ error: "Etiketlenen kullanıcı bulunamadı." });
+      }
       payload.tagged_user_id = parsedTaggedUserId;
     }
 
@@ -39,6 +50,7 @@ exports.createPost = async (req, res) => {
       post: newPost,
     });
   } catch (error) {
+    console.error("Create post error:", error);
     res.status(500).json({ error: "Gönderi oluşturulamadı." });
   }
 };
@@ -95,6 +107,7 @@ exports.getFeed = async (req, res) => {
 
     res.status(200).json(shaped);
   } catch (error) {
+    console.error("Get feed error:", error);
     res.status(500).json({ error: "Akış yüklenemedi." });
   }
 };
@@ -130,6 +143,7 @@ exports.toggleLike = async (req, res) => {
       likeCount,
     });
   } catch (error) {
+    console.error("Toggle like error:", error);
     res.status(500).json({ error: "Beğeni işlemi başarısız oldu." });
   }
 };
@@ -165,6 +179,7 @@ exports.addComment = async (req, res) => {
       commentCount,
     });
   } catch (error) {
+    console.error("Add comment error:", error);
     res.status(500).json({ error: "Yorum eklenemedi." });
   }
 };
@@ -186,6 +201,7 @@ exports.getComments = async (req, res) => {
 
     res.status(200).json(comments);
   } catch (error) {
+    console.error("Get comments error:", error);
     res.status(500).json({ error: "Yorumlar yüklenemedi." });
   }
 };
@@ -216,6 +232,7 @@ exports.deletePost = async (req, res) => {
 
     res.status(200).json({ message: "Gönderi başarıyla silindi." });
   } catch (error) {
+    console.error("Delete post error:", error);
     res.status(500).json({ error: "Silme işlemi başarısız oldu." });
   }
 };
@@ -288,6 +305,7 @@ exports.getFollowingFeed = async (req, res) => {
 
     res.status(200).json(shaped);
   } catch (error) {
+    console.error("Get following feed error:", error);
     res
       .status(500)
       .json({ error: "Takip edilen kullanıcıların gönderileri yüklenemedi." });

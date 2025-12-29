@@ -6,7 +6,8 @@
     <title>Giriş Yap - Dijital Kütüphane</title>
     <link href="/styles.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="img/logo.ico" />
-    <script src="js/main.js"></script>
+    <script src="js/main.js" defer></script>
+    <script src="js/login.js" defer></script>
   </head>
 
   <body class="bg-gray-100 h-screen flex items-center justify-center">
@@ -144,30 +145,5 @@
         </form>
       </div>
     </div>
-
-    <script>
-      function toggleForm(formType) {
-        const loginForm = document.getElementById("login-form");
-        const registerForm = document.getElementById("register-form");
-        const tabLogin = document.getElementById("tab-login");
-        const tabRegister = document.getElementById("tab-register");
-
-        if (formType === "login") {
-          loginForm.classList.remove("hidden");
-          registerForm.classList.add("hidden");
-          tabLogin.className =
-            "pb-2 border-b-2 border-blue-600 font-semibold text-blue-600 focus:outline-none";
-          tabRegister.className =
-            "pb-2 text-gray-600 hover:text-blue-600 font-semibold focus:outline-none";
-        } else {
-          loginForm.classList.add("hidden");
-          registerForm.classList.remove("hidden");
-          tabRegister.className =
-            "pb-2 border-b-2 border-blue-600 font-semibold text-blue-600 focus:outline-none";
-          tabLogin.className =
-            "pb-2 text-gray-600 hover:text-blue-600 font-semibold focus:outline-none";
-        }
-      }
-    </script>
   </body>
 </html>

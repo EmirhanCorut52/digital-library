@@ -21,14 +21,11 @@ const PostComment = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
   },
   {
     tableName: "PostComments",
-    timestamps: false,
+    timestamps: true,
+    underscored: true,
   }
 );
 

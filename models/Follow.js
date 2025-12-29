@@ -25,13 +25,21 @@ const Follow = sequelize.define(
   },
   {
     tableName: "Follows",
-    timestamps: false,
+    timestamps: true,
+    underscored: true,
     indexes: [
       {
         unique: true,
         fields: ["follower_id", "following_id"],
       },
     ],
+    validate: {
+      cannotFollowSelf() {
+        if (this.follower_id === this.following_id) {
+          throw new Error("Kendinizi takip edemezsiniz.");
+        }
+      },
+    },
   }
 );
 

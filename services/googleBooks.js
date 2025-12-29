@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const GOOGLE_BOOKS_API_URL = "https://www.googleapis.com/books/v1/volumes";
+const API_URL = process.env.GOOGLE_BOOKS_API_URL;
 
 const API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 
@@ -14,7 +14,7 @@ exports.searchBooks = async (query, maxResults = 10) => {
       langRestrict: "tr",
     };
 
-    const response = await axios.get(GOOGLE_BOOKS_API_URL, { params });
+    const response = await axios.get(API_URL, { params });
     const items = response.data.items || [];
 
     const mappedBooks = items.map((item) => {

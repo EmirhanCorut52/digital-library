@@ -5,11 +5,15 @@ const authMiddleware = require("../middlewares/authMiddleware");
 const roleMiddleware = require("../middlewares/roleMiddleware");
 
 router.post("/add", authMiddleware, roleMiddleware, bookController.addBook);
-router.post("/import", bookController.importFromGoogle);
+router.post(
+  "/import",
+  authMiddleware,
+  roleMiddleware,
+  bookController.importFromGoogle
+);
 
 router.get("/", bookController.getAllBooks);
 router.get("/search", bookController.searchBooks);
-router.get("/popular", bookController.getPopularBooks);
 router.get("/:id", bookController.getBookDetails);
 
 router.delete(

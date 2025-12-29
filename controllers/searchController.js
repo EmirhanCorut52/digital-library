@@ -9,7 +9,7 @@ exports.generalSearch = async (req, res) => {
     const { q } = req.query;
 
     if (!q) {
-      return res.status(400).json({ error: "Please enter a word to search." });
+      return res.status(400).json({ error: "Arama terimini girin." });
     }
 
     const safeFind = async (fn) => {
@@ -44,19 +44,15 @@ exports.generalSearch = async (req, res) => {
     ]);
 
     res.status(200).json({
-      result_message: `Search results for "${q}":`,
+      result_message: `"${q}" için arama sonuçları:`,
       books: bookResults,
       authors: authorResults,
       users: userResults,
     });
   } catch (error) {
     console.error("Search error:", error);
-    res.status(200).json({
-      result_message: `Search results for "${q}":`,
-      books: [],
-      authors: [],
-      users: [],
-      error: "search_failed",
+    res.status(500).json({
+      error: "Arama işlemi başarısız oldu.",
     });
   }
 };

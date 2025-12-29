@@ -17,14 +17,11 @@ const PostLike = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
   },
   {
     tableName: "PostLikes",
-    timestamps: false,
+    timestamps: true,
+    underscored: true,
     indexes: [
       {
         unique: true,

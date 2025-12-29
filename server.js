@@ -22,6 +22,17 @@ const Follow = require("./models/Follow");
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  console.error("FATAL ERROR: JWT_SECRET environment variable is not defined.");
+  console.error("Please add JWT_SECRET to your .env file");
+  process.exit(1);
+}
+
+if (!process.env.JWT_TIMEOUT) {
+  console.warn("WARNING: JWT_TIMEOUT not set, using default: 1h");
+  process.env.JWT_TIMEOUT = "1h";
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "0.0.0.0";
@@ -63,7 +74,9 @@ Object.keys(models).forEach((modelName) => {
     await sequelize.sync();
     console.log("SUCCESS: Models synchronized!");
 
-    const server = app.listen(PORT, HOST);
+    const server = app.listen(PORT, HOST, () => {
+      console.log(`\nServer is running!`);
+    });
 
     server.on("error", (error) => {
       console.error("SERVER ERROR:", error);

@@ -38,14 +38,11 @@ const User = sequelize.define(
       type: DataTypes.ENUM("user", "admin"),
       defaultValue: "user",
     },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
   },
   {
     tableName: "Users",
-    timestamps: false,
+    timestamps: true,
+    underscored: true,
   }
 );
 
@@ -57,10 +54,19 @@ User.associate = (models) => {
     onDelete: "SET NULL",
   });
   User.hasMany(models.PostLike, { foreignKey: "user_id", onDelete: "CASCADE" });
-  User.hasMany(models.PostComment, { foreignKey: "user_id", onDelete: "CASCADE" });
+  User.hasMany(models.PostComment, {
+    foreignKey: "user_id",
+    onDelete: "CASCADE",
+  });
   User.hasMany(models.Comment, { foreignKey: "user_id", onDelete: "CASCADE" });
-  User.hasMany(models.Follow, { foreignKey: "follower_id", onDelete: "CASCADE" });
-  User.hasMany(models.Follow, { foreignKey: "following_id", onDelete: "CASCADE" });
+  User.hasMany(models.Follow, {
+    foreignKey: "follower_id",
+    onDelete: "CASCADE",
+  });
+  User.hasMany(models.Follow, {
+    foreignKey: "following_id",
+    onDelete: "CASCADE",
+  });
 };
 
 module.exports = User;

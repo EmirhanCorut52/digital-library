@@ -1,11 +1,8 @@
-// Google Books'tan kitap arama ve ekleme
 document.addEventListener("DOMContentLoaded", () => {
   const searchBtn = document.getElementById("google-books-search-btn");
   const queryInput = document.getElementById("google-books-query");
-  const resultsDiv = document.getElementById("google-books-results");
-  const listDiv = document.getElementById("google-books-list");
 
-  if (searchBtn && queryInput && resultsDiv && listDiv) {
+  if (searchBtn && queryInput) {
     searchBtn.addEventListener("click", async () => {
       const query = queryInput.value.trim();
       if (!query) {
@@ -14,150 +11,41 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       searchBtn.disabled = true;
       searchBtn.innerHTML =
-        '<i class="fas fa-spinner fa-spin mr-2"></i> Aranıyor...';
+        '<i class="fas fa-spinner fa-spin mr-2"></i> Ekleniyor...';
       try {
         const res = await authFetch("/books/import", {
           method: "POST",
           body: JSON.stringify({ query }),
         });
         if (!res || !res.ok) {
-          alert("Google Books araması başarısız oldu.");
-          resultsDiv.classList.add("hidden");
+          alert("Google Books içe aktarma başarısız oldu.");
           return;
         }
         const data = await res.json();
-        if (data.error || !data.found) {
-          alert(data.error || "Sonuç bulunamadı.");
-          resultsDiv.classList.add("hidden");
+        if (data.error) {
+          alert(data.error);
           return;
         }
-        // Sonuçları çekmek için tekrar Google Books servisine istek at
-        const booksRes = await fetch(
-          `/api/google-books?q=${encodeURIComponent(query)}`
+        alert(
+          `İçe aktarma tamamlandı. Bulunan: ${data.found || 0}, Kaydedilen: ${
+            data.saved || 0
+          }`
         );
-        const books = booksRes.ok ? await booksRes.json() : [];
-        listDiv.innerHTML =
-          Array.isArray(books) && books.length > 0
-            ? books
-                .map(
-                  (book) => `
-              <div class="flex gap-3 p-3 bg-gray-50 rounded shadow items-center">
-                <img src="${
-                  book.cover_image || ""
-                }" alt="Kapak" class="w-16 h-24 object-cover rounded border" onerror="this.src='https://via.placeholder.com/80x120?text=No+Image'" />
-                <div class="flex-1">
-                  <div class="font-bold">${book.title}</div>
-                  <div class="text-xs text-gray-600 mb-1">${(
-                    book.authors || []
-                  ).join(", ")}</div>
-                  <div class="text-xs text-gray-500">${
-                    book.publisher || ""
-                  } | ${book.published_date || ""}</div>
-                  <div class="text-xs text-gray-500">${
-                    book.category || ""
-                  }</div>
-                  <button class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs" onclick='addBookFromGoogle(${JSON.stringify(
-                    book
-                  )})'>Ekle</button>
-                </div>
-              </div>
-            `
-                )
-                .join("")
-            : '<div class="p-3 text-gray-500">Sonuç bulunamadı.</div>';
-        resultsDiv.classList.remove("hidden");
+        if (typeof closeGoogleBooksModal === "function")
+          closeGoogleBooksModal();
+        if (typeof loadBooks === "function") loadBooks();
+        if (typeof loadDashboardStats === "function") loadDashboardStats();
       } catch (e) {
-        alert("Google Books araması sırasında hata oluştu.");
-        resultsDiv.classList.add("hidden");
+        alert("Google Books içe aktarma sırasında hata oluştu.");
       } finally {
         searchBtn.disabled = false;
         searchBtn.innerHTML =
-          '<i class="fas fa-search mr-2"></i> Google Books\'ta Ara';
+          '<i class="fas fa-plus mr-2"></i> Google Books\'la Ekle';
       }
     });
   }
 });
 
-// Google Books arama fonksiyonu (modal için)
-document.addEventListener("DOMContentLoaded", () => {
-  const searchBtn = document.getElementById("google-books-search-btn");
-  const queryInput = document.getElementById("google-books-query");
-  const resultsDiv = document.getElementById("google-books-results");
-  const listDiv = document.getElementById("google-books-list");
-
-  if (searchBtn && queryInput && resultsDiv && listDiv) {
-    searchBtn.addEventListener("click", async () => {
-      const query = queryInput.value.trim();
-      if (!query) {
-        alert("Lütfen bir arama terimi girin.");
-        return;
-      }
-      searchBtn.disabled = true;
-      searchBtn.innerHTML =
-        '<i class="fas fa-spinner fa-spin mr-2"></i> Aranıyor...';
-      try {
-        const res = await authFetch("/books/import", {
-          method: "POST",
-          body: JSON.stringify({ query }),
-        });
-        if (!res || !res.ok) {
-          alert("Google Books araması başarısız oldu.");
-          resultsDiv.classList.add("hidden");
-          return;
-        }
-        const data = await res.json();
-        if (data.error || !data.found) {
-          alert(data.error || "Sonuç bulunamadı.");
-          resultsDiv.classList.add("hidden");
-          return;
-        }
-        // Sonuçları çekmek için tekrar Google Books servisine istek at
-        const booksRes = await fetch(
-          `/api/google-books?q=${encodeURIComponent(query)}`
-        );
-        const books = booksRes.ok ? await booksRes.json() : [];
-        listDiv.innerHTML =
-          Array.isArray(books) && books.length > 0
-            ? books
-                .map(
-                  (book) => `
-              <div class="flex gap-3 p-3 bg-gray-50 rounded shadow items-center">
-                <img src="${
-                  book.cover_image || ""
-                }" alt="Kapak" class="w-16 h-24 object-cover rounded border" onerror="this.src='https://via.placeholder.com/80x120?text=No+Image'" />
-                <div class="flex-1">
-                  <div class="font-bold">${book.title}</div>
-                  <div class="text-xs text-gray-600 mb-1">${(
-                    book.authors || []
-                  ).join(", ")}</div>
-                  <div class="text-xs text-gray-500">${
-                    book.publisher || ""
-                  } | ${book.published_date || ""}</div>
-                  <div class="text-xs text-gray-500">${
-                    book.category || ""
-                  }</div>
-                  <button class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs" onclick='addBookFromGoogle(${JSON.stringify(
-                    book
-                  )})'>Ekle</button>
-                </div>
-              </div>
-            `
-                )
-                .join("")
-            : '<div class="p-3 text-gray-500">Sonuç bulunamadı.</div>';
-        resultsDiv.classList.remove("hidden");
-      } catch (e) {
-        alert("Google Books araması sırasında hata oluştu.");
-        resultsDiv.classList.add("hidden");
-      } finally {
-        searchBtn.disabled = false;
-        searchBtn.innerHTML = '<i class="fas fa-search mr-2"></i> Ara';
-      }
-    });
-  }
-});
-
-// Google Books'tan gelen kitabı ekle
 async function addBookFromGoogle(book) {
   if (!book) return;
   try {
@@ -189,7 +77,11 @@ function checkAuth() {
   const token = localStorage.getItem("token");
   const path = window.location.pathname;
 
-  const publicPages = ["login.html", "forgot-password", "set-password"];
+  const publicPages = [
+    "login.html",
+    "forgot-password.html",
+    "set-password.html",
+  ];
   const isPublicPage = publicPages.some((page) => path.includes(page));
 
   if (isPublicPage && token) {
@@ -204,6 +96,8 @@ function logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("role");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("user_name");
     window.location.href = "login.html";
   }
 }
@@ -211,25 +105,41 @@ function logout() {
 async function authFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
 
-  options.headers = options.headers || {};
-  options.headers["Authorization"] = `Bearer ${token}`;
-  options.headers["Content-Type"] = "application/json";
-
-  const response = await fetch(`${API_URL}${endpoint}`, options);
-
-  if (response.status === 401 || response.status === 403) {
-    alert("Oturumunuzun süresi doldu, lütfen tekrar giriş yapın.");
-    localStorage.removeItem("token");
+  if (!token) {
     window.location.href = "login.html";
     return null;
   }
 
-  return response;
+  options.headers = options.headers || {};
+  options.headers["Authorization"] = `Bearer ${token}`;
+  options.headers["Content-Type"] = "application/json";
+
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, options);
+
+    if (response.status === 401 || response.status === 403) {
+      alert("Oturumunuzun süresi doldu, lütfen tekrar giriş yapın.");
+      localStorage.clear();
+      window.location.href = "login.html";
+      return null;
+    }
+
+    return response;
+  } catch (error) {
+    console.error("Network error:", error);
+    return null;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   checkAuth();
+  setupLogoutButtons();
+  setupSearchInputs();
+  setupNavbarSearchSuggestions();
+  ensureRoleThenShortcut();
+});
 
+function setupLogoutButtons() {
   const logoutBtns = document.querySelectorAll(".fa-sign-out-alt");
   logoutBtns.forEach((icon) => {
     const link = icon.closest("a") || icon.closest("button");
@@ -240,9 +150,9 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
   });
-});
+}
 
-document.addEventListener("DOMContentLoaded", () => {
+function setupSearchInputs() {
   const searchInputs = document.querySelectorAll(
     'input[placeholder*="ara"], input[placeholder*="Ara"]'
   );
@@ -262,10 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-
-  setupNavbarSearchSuggestions();
-  ensureRoleThenShortcut();
-});
+}
 
 function setupNavbarSearchSuggestions() {
   const input = document.getElementById("navbar-search");
@@ -309,7 +216,7 @@ function setupNavbarSearchSuggestions() {
     box.innerHTML = '<div class="p-3 text-gray-500 text-sm">Aranıyor...</div>';
     showBox();
 
-    debounceId = setTimeout(() => fetchSearchSuggestions(query, box), 250);
+    debounceId = setTimeout(() => fetchSearchSuggestions(query, box), 300);
   });
 
   input.addEventListener("focus", () => {
@@ -319,7 +226,7 @@ function setupNavbarSearchSuggestions() {
   });
 
   input.addEventListener("blur", () => {
-    setTimeout(() => hideBox(), 150);
+    setTimeout(() => hideBox(), 200);
   });
 
   input.addEventListener("keypress", (e) => {
@@ -346,6 +253,7 @@ async function fetchSearchSuggestions(query, box) {
     const data = await res.json();
     renderSearchSuggestions(data, box);
   } catch (error) {
+    console.error("Search suggestions error:", error);
     box.innerHTML =
       '<div class="p-3 text-red-500 text-sm">Öneriler alınamadı.</div>';
   }
@@ -355,7 +263,12 @@ function renderSearchSuggestions(data, box) {
   const books = Array.isArray(data?.books) ? data.books : [];
   const users = Array.isArray(data?.users) ? data.users : [];
   const escapeHtml = (str) =>
-    (str || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    (str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
 
   if (books.length === 0 && users.length === 0) {
     box.innerHTML =
@@ -368,7 +281,7 @@ function renderSearchSuggestions(data, box) {
     .slice(0, 5)
     .map((book) => {
       const coverHtml = book.cover_image
-        ? `<img src="${book.cover_image}" alt="${escapeHtml(
+        ? `<img src="${escapeHtml(book.cover_image)}" alt="${escapeHtml(
             book.title
           )}" class="w-10 h-14 object-cover rounded flex-shrink-0" />`
         : '<div class="w-10 h-14 rounded bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 text-xs"><i class="fas fa-book"></i></div>';
@@ -448,7 +361,9 @@ async function ensureRoleThenShortcut() {
           localStorage.setItem("user_id", user.user_id);
         }
       }
-    } catch (e) {}
+    } catch (error) {
+      console.error("Error fetching user role:", error);
+    }
   }
 
   addAdminShortcut();
@@ -465,20 +380,23 @@ function addAdminShortcut() {
   btn.href = "admin.html";
   btn.title = "Admin Paneli";
   btn.innerHTML = '<i class="fas fa-shield-alt"></i>';
-  btn.style.position = "fixed";
-  btn.style.right = "16px";
-  btn.style.bottom = "16px";
-  btn.style.width = "48px";
-  btn.style.height = "48px";
-  btn.style.borderRadius = "999px";
-  btn.style.display = "flex";
-  btn.style.alignItems = "center";
-  btn.style.justifyContent = "center";
-  btn.style.background = "#1d4ed8";
-  btn.style.color = "white";
-  btn.style.boxShadow = "0 10px 25px rgba(0,0,0,0.12)";
-  btn.style.zIndex = "999";
-  btn.style.textDecoration = "none";
+  btn.style.cssText = `
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1d4ed8;
+    color: white;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    z-index: 999;
+    text-decoration: none;
+    transition: background 0.2s;
+  `;
 
   btn.addEventListener("mouseenter", () => {
     btn.style.background = "#1e40af";
@@ -492,7 +410,7 @@ function addAdminShortcut() {
 
 async function sharePost() {
   const postInput = document.getElementById("post-input");
-  const text = postInput.value.trim();
+  const text = postInput?.value.trim();
 
   if (!text) {
     alert("Gönderi metni boş olamaz!");
@@ -522,20 +440,22 @@ async function sharePost() {
       if (typeof clearUserTag !== "undefined") {
         clearUserTag();
       }
-      if (window.getFeed) {
-        window.getFeed();
+      if (typeof getFeed === "function") {
+        getFeed();
       }
     } else {
-      alert("Gönderi paylaşılırken hata oluştu.");
+      const errorData = await response.json();
+      alert(errorData.error || "Gönderi paylaşılırken hata oluştu.");
     }
   } catch (error) {
+    console.error("Share post error:", error);
     alert("Gönderi paylaşılırken hata oluştu.");
   }
 }
 
 async function login() {
-  const email = document.getElementById("login-email").value.trim();
-  const password = document.getElementById("login-password").value;
+  const email = document.getElementById("login-email")?.value.trim();
+  const password = document.getElementById("login-password")?.value;
 
   if (!email || !password) {
     alert("Lütfen e-posta ve şifrenizi girin.");
@@ -565,15 +485,16 @@ async function login() {
       alert(data.error || "Giriş başarısız oldu.");
     }
   } catch (error) {
+    console.error("Login error:", error);
     alert("Giriş sırasında hata oluştu.");
   }
 }
 
 async function register() {
-  const name = document.getElementById("reg-name").value.trim();
-  const username = document.getElementById("reg-username").value.trim();
-  const email = document.getElementById("reg-email").value.trim();
-  const password = document.getElementById("reg-password").value;
+  const name = document.getElementById("reg-name")?.value.trim();
+  const username = document.getElementById("reg-username")?.value.trim();
+  const email = document.getElementById("reg-email")?.value.trim();
+  const password = document.getElementById("reg-password")?.value;
 
   if (!name || !username || !email || !password) {
     alert("Lütfen tüm alanları doldurun.");
@@ -594,11 +515,14 @@ async function register() {
     if (response.ok) {
       alert("Kayıt başarılı! Lütfen giriş yapın.");
       document.getElementById("register-form").reset();
-      toggleForm("login");
+      if (typeof toggleForm === "function") {
+        toggleForm("login");
+      }
     } else {
       alert(data.error || "Kayıt başarısız oldu.");
     }
   } catch (error) {
+    console.error("Register error:", error);
     alert("Kayıt sırasında hata oluştu.");
   }
 }
