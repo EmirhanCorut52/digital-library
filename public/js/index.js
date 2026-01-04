@@ -2,6 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
   getProfileInfo();
   getFeed();
   getLatestBooks();
+  document.querySelectorAll("[data-latest-trigger]").forEach((btn) => {
+    btn.addEventListener("click", showAllLatestBooks);
+  });
 });
 
 let currentFeed = "all";
@@ -328,12 +331,10 @@ async function getFeed() {
 async function getLatestBooks() {
   const container = document.getElementById("popular-books");
   try {
-    const response = await authFetch("/books");
+    const response = await authFetch("/books/latest?limit=5");
     if (!response || !response.ok) return;
     let books = await response.json();
-    books = (Array.isArray(books) ? books : [])
-      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-      .slice(0, 5);
+    books = Array.isArray(books) ? books : [];
 
     container.innerHTML = "";
     if (books.length === 0) {
@@ -364,6 +365,17 @@ async function getLatestBooks() {
     container.innerHTML =
       '<p class="text-red-500 text-sm">Son eklenen kitaplar yüklenemedi.</p>';
   }
+}
+
+function closeLatestBooksModal() {
+  const modal = document.getElementById("latest-books-modal");
+  if (!modal) return;
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+async function showAllLatestBooks() {
+  window.location.href = "search-results.html?latest=1";
 }
 
 async function toggleLike(postId, btnEl) {

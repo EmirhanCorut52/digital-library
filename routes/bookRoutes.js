@@ -14,6 +14,7 @@ router.post(
 
 router.get("/", bookController.getAllBooks);
 router.get("/search", bookController.searchBooks);
+router.get("/latest", bookController.getLatestBooks);
 router.get("/:id", bookController.getBookDetails);
 
 router.delete(

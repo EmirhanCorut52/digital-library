@@ -14,9 +14,14 @@ exports.searchBooks = async (query, maxResults = 10) => {
     };
 
     const response = await axios.get(API_URL, { params });
-    const items = (response.data.items || []).filter(
-      (item) => item?.volumeInfo?.language === "tr"
-    );
+    const items = (response.data.items || []).filter((item) => {
+      const info = item?.volumeInfo || {};
+      const hasTitle = !!info.title;
+      const hasAuthors = Array.isArray(info.authors) && info.authors.length > 0;
+      const hasDescription = !!info.description;
+      const descIsTurkish = hasDescription && isLikelyTurkish(info.description);
+      return hasTitle && hasAuthors && descIsTurkish;
+    });
 
     const mappedBooks = await Promise.all(
       items.map(async (item) => {
@@ -58,4 +63,11 @@ exports.searchBooks = async (query, maxResults = 10) => {
 function formatCategory(raw) {
   if (!raw) return "Genel";
   return String(raw).split("/")[0].trim();
+}
+
+function isLikelyTurkish(text) {
+  if (!text) return false;
+  const turkishChars = /[çğıöşüÇĞİÖŞÜ]/g;
+  const matches = text.match(turkishChars) || [];
+  return matches.length >= 3; // simple heuristic
 }

@@ -89,6 +89,30 @@ exports.getAllBooks = async (req, res) => {
   }
 };
 
+exports.getLatestBooks = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit, 10);
+    const finalLimit = Number.isFinite(limit) && limit > 0 ? limit : undefined;
+
+    const books = await Book.findAll({
+      include: [
+        {
+          model: Author,
+          attributes: ["author_id", "full_name"],
+          through: { attributes: [] },
+        },
+      ],
+      order: [["created_at", "DESC"]],
+      limit: finalLimit,
+    });
+
+    res.status(200).json(books);
+  } catch (error) {
+    console.error("Get latest books error:", error);
+    res.status(500).json({ error: "Son eklenen kitaplar getirilemedi." });
+  }
+};
+
 exports.getBookDetails = async (req, res) => {
   try {
     const { id } = req.params;

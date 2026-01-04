@@ -1,13 +1,19 @@
 document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const query = urlParams.get("q");
+  const latest = urlParams.get("latest");
 
-  if (query) {
+  if (latest) {
+    document.getElementById("search-query").innerText = "Son Eklenenler";
+    document.getElementById("navbar-search").value = "";
+    loadLatestBooks();
+    switchTab("books");
+  } else if (query) {
     document.getElementById("search-query").innerText = query;
     document.getElementById("navbar-search").value = query;
     performSearch(query);
   } else {
-    document.getElementById("results-container").innerHTML =
+    document.getElementById("books-container").innerHTML =
       '<p class="text-gray-500">Lütfen yukarıdaki kutudan arama yapın.</p>';
     document.getElementById("search-query").innerText = "-";
   }
@@ -72,6 +78,75 @@ async function searchBooks(query) {
     console.error(error);
     container.innerHTML =
       '<p class="text-red-500">Kitap araması sırasında hata oluştu.</p>';
+  }
+}
+
+async function loadLatestBooks() {
+  const container = document.getElementById("books-container");
+  try {
+    const response = await authFetch("/books/latest");
+    if (!response || !response.ok) {
+      container.innerHTML =
+        '<p class="text-red-500 col-span-3 text-center">Son eklenen kitaplar getirilemedi.</p>';
+      return;
+    }
+
+    const books = await response.json();
+    container.innerHTML = "";
+
+    if (!Array.isArray(books) || books.length === 0) {
+      container.innerHTML =
+        '<p class="text-gray-500 col-span-3 text-center">Henüz eklenen kitap yok.</p>';
+      return;
+    }
+
+    books.forEach((book) => {
+      const coverHtml = book.cover_image
+        ? `<img src="${book.cover_image}" alt="${book.title}" class="w-24 h-36 object-cover rounded flex-shrink-0">`
+        : '<div class="w-24 h-36 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center text-gray-400"><i class="fas fa-book text-3xl"></i></div>';
+
+      const authorName =
+        book.author ||
+        (book.Authors && book.Authors.length > 0
+          ? book.Authors.map((a) => a.full_name).join(", ")
+          : "Bilinmeyen");
+
+      const createdStr = book.createdAt
+        ? new Date(book.createdAt).toLocaleString("tr-TR")
+        : "";
+
+      const html = `
+                    <div class="bg-white rounded-lg shadow hover:shadow-md transition p-4 flex gap-4">
+                        ${coverHtml}
+                        <div class="flex flex-col justify-between w-full">
+                            <div>
+                                <a href="book-details.html?id=${
+                                  book.book_id
+                                }" class="font-bold text-lg text-gray-900 hover:text-blue-600 line-clamp-1">${
+        book.title
+      }</a>
+                                <p class="text-sm text-gray-500 mb-1">${authorName}</p>
+                                <div class="flex items-center gap-2 text-xs text-gray-500">
+                                  <span class="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded">${
+                                    book.category || "Kategori yok"
+                                  }</span>
+                                  <span>${createdStr}</span>
+                                </div>
+                            </div>
+                            <a href="book-details.html?id=${
+                              book.book_id
+                            }" class="mt-3 text-center w-full text-sm border border-blue-600 text-blue-600 py-1 px-3 rounded hover:bg-blue-50 transition">
+                              Detayları Gör
+                            </a>
+                        </div>
+                    </div>
+                    `;
+      container.innerHTML += html;
+    });
+  } catch (error) {
+    console.error(error);
+    container.innerHTML =
+      '<p class="text-red-500">Son eklenenler yüklenirken hata oluştu.</p>';
   }
 }
 
