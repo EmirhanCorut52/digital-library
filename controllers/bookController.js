@@ -234,43 +234,12 @@ exports.importFromGoogle = async (req, res) => {
       return res.status(404).json({ error: "Google'da kitap bulunamadı." });
     }
 
-    let addedCount = 0;
-
-    for (const item of booksFromGoogle) {
-      const existingBook = await Book.findOne({
-        where: { title: item.title },
-      });
-
-      if (!existingBook) {
-        const newBook = await Book.create({
-          title: item.title,
-          description: item.description,
-          page_count: item.page_count,
-          publisher: item.publisher,
-          cover_image: item.cover_image,
-          category: item.category,
-        });
-
-        if (item.authors && item.authors.length > 0) {
-          for (const authorName of item.authors) {
-            const [author] = await Author.findOrCreate({
-              where: { full_name: authorName },
-              defaults: { full_name: authorName },
-            });
-            await newBook.addAuthor(author);
-          }
-        }
-        addedCount++;
-      }
-    }
-
     res.status(200).json({
-      message: "İçe aktarma tamamlandı.",
+      results: booksFromGoogle,
       found: booksFromGoogle.length,
-      saved: addedCount,
     });
   } catch (error) {
     console.error("Google Import Hatası:", error);
-    res.status(500).json({ error: "Kitaplar içe aktarılırken hata oluştu." });
+    res.status(500).json({ error: "Google Books aranırken hata oluştu." });
   }
 };

@@ -1,50 +1,205 @@
 document.addEventListener("DOMContentLoaded", () => {
+  initGoogleBooksSearch();
+});
+
+function initGoogleBooksSearch() {
   const searchBtn = document.getElementById("google-books-search-btn");
   const queryInput = document.getElementById("google-books-query");
+  const resultsBox = document.getElementById("google-books-results");
+  const resultsInfo = document.getElementById("google-books-results-info");
+  const list = document.getElementById("google-books-list");
+  let existingKeys = new Set();
 
-  if (searchBtn && queryInput) {
-    searchBtn.addEventListener("click", async () => {
-      const query = queryInput.value.trim();
-      if (!query) {
-        alert("Lütfen bir arama terimi girin.");
+  if (!searchBtn || !queryInput || !resultsBox || !list) return;
+
+  searchBtn.addEventListener("click", async () => {
+    const query = queryInput.value.trim();
+    if (!query) {
+      alert("Lütfen bir arama terimi girin.");
+      return;
+    }
+
+    searchBtn.disabled = true;
+    const originalLabel = searchBtn.innerHTML;
+    searchBtn.innerHTML =
+      '<i class="fas fa-spinner fa-spin mr-2"></i> Aranıyor...';
+    list.innerHTML = "";
+    resultsInfo.textContent = "Aranıyor...";
+    resultsBox.classList.remove("hidden");
+
+    try {
+      const res = await authFetch("/books/import", {
+        method: "POST",
+        body: JSON.stringify({ query }),
+      });
+
+      if (!res) return;
+
+      if (!res.ok) {
+        alert("Google Books araması başarısız oldu.");
+        resultsInfo.textContent = "Arama başarısız oldu.";
         return;
       }
-      searchBtn.disabled = true;
-      searchBtn.innerHTML =
-        '<i class="fas fa-spinner fa-spin mr-2"></i> Ekleniyor...';
-      try {
-        const res = await authFetch("/books/import", {
-          method: "POST",
-          body: JSON.stringify({ query }),
-        });
-        if (!res || !res.ok) {
-          alert("Google Books içe aktarma başarısız oldu.");
-          return;
-        }
-        const data = await res.json();
-        if (data.error) {
-          alert(data.error);
-          return;
-        }
-        alert(
-          `İçe aktarma tamamlandı. Bulunan: ${data.found || 0}, Kaydedilen: ${
-            data.saved || 0
-          }`
-        );
-        if (typeof closeGoogleBooksModal === "function")
-          closeGoogleBooksModal();
-        if (typeof loadBooks === "function") loadBooks();
-        if (typeof loadDashboardStats === "function") loadDashboardStats();
-      } catch (e) {
-        alert("Google Books içe aktarma sırasında hata oluştu.");
-      } finally {
-        searchBtn.disabled = false;
-        searchBtn.innerHTML =
-          '<i class="fas fa-plus mr-2"></i> Google Books\'la Ekle';
+
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+        resultsInfo.textContent = data.error;
+        return;
       }
-    });
+
+      const results = Array.isArray(data.results) ? data.results : [];
+
+      existingKeys = await fetchExistingBookKeys();
+
+      if (results.length === 0) {
+        resultsInfo.textContent = "Sonuç bulunamadı.";
+        return;
+      }
+
+      resultsInfo.textContent = `${results.length} sonuç bulundu.`;
+      list.innerHTML = "";
+
+      results.forEach((book) => {
+        const row = document.createElement("div");
+        row.className = "flex gap-3 items-start p-3 hover:bg-gray-50";
+
+        const cover = document.createElement("div");
+        cover.className =
+          "w-12 h-16 bg-gray-200 rounded overflow-hidden flex-shrink-0";
+        if (book.cover_image) {
+          cover.innerHTML = `<img src="${book.cover_image}" alt="${book.title}" class="w-full h-full object-cover">`;
+        }
+        row.appendChild(cover);
+
+        const body = document.createElement("div");
+        body.className = "flex-1";
+        const title = document.createElement("div");
+        title.className = "font-semibold text-gray-800";
+        title.textContent = book.title || "(Başlık yok)";
+        body.appendChild(title);
+
+        const meta = document.createElement("div");
+        meta.className = "text-xs text-gray-600 mt-1 space-y-0.5";
+        const authors =
+          book.authors && book.authors.length
+            ? book.authors.join(", ")
+            : "Yazar bilgisi yok";
+        meta.innerHTML = `
+          <div>${authors}</div>
+          <div>${book.publisher || "Yayınevi yok"} · ${
+          book.category || "Kategori yok"
+        }</div>
+          <div>${
+            book.page_count ? book.page_count + " sf" : "Sayfa bilgisi yok"
+          }</div>
+        `;
+        body.appendChild(meta);
+        row.appendChild(body);
+
+        const actions = document.createElement("div");
+        actions.className = "flex flex-col gap-2";
+        const addBtn = document.createElement("button");
+        addBtn.className =
+          "text-white text-xs px-3 py-2 rounded font-semibold transition";
+        addBtn.dataset.key = buildBookKey(book.title, book.authors);
+
+        setButtonState(addBtn, existingKeys);
+
+        addBtn.addEventListener("click", async () => {
+          const key = addBtn.dataset.key || "";
+
+          // Güncel listeyi çek, durumu eşitle; zaten ekliyse işlem yapma
+          existingKeys = await fetchExistingBookKeys();
+          syncButtonStates(list, existingKeys);
+          if (existingKeys.has(key)) {
+            setButtonState(addBtn, existingKeys);
+            return;
+          }
+
+          addBtn.disabled = true;
+          addBtn.textContent = "Ekleniyor...";
+          const ok = await addBookFromGoogle(book);
+          existingKeys = await fetchExistingBookKeys();
+          syncButtonStates(list, existingKeys);
+          if (!ok) {
+            // Ekleme başarısızsa butonu yeniden aktif et
+            setButtonState(addBtn, existingKeys);
+          }
+        });
+        actions.appendChild(addBtn);
+        row.appendChild(actions);
+
+        list.appendChild(row);
+      });
+    } catch (e) {
+      console.error(e);
+      alert("Google Books araması sırasında hata oluştu.");
+      resultsInfo.textContent = "Arama sırasında hata oluştu.";
+    } finally {
+      searchBtn.disabled = false;
+      searchBtn.innerHTML = originalLabel;
+    }
+  });
+}
+
+function setButtonState(btn, existingKeys) {
+  const alreadyAdded = existingKeys.has(btn.dataset.key || "");
+  btn.classList.remove(
+    "bg-blue-600",
+    "bg-green-600",
+    "hover:bg-blue-700",
+    "opacity-80"
+  );
+  btn.disabled = false;
+  btn.style.pointerEvents = "auto";
+
+  if (alreadyAdded) {
+    btn.textContent = "Eklendi";
+    btn.classList.add("bg-green-600", "opacity-80");
+    btn.disabled = true; // tıklanmasın
+    btn.style.pointerEvents = "none"; // hover/click etkileşimini kes
+  } else {
+    btn.textContent = "Ekle";
+    btn.classList.add("bg-blue-600", "hover:bg-blue-700");
   }
-});
+}
+
+function syncButtonStates(list, existingKeys) {
+  const buttons = list.querySelectorAll("button[data-key]");
+  buttons.forEach((btn) => setButtonState(btn, existingKeys));
+}
+
+async function fetchExistingBookKeys() {
+  try {
+    const res = await authFetch(`/books?_=${Date.now()}`);
+    if (!res || !res.ok) return new Set();
+    const data = await res.json();
+    return new Set(
+      (data || [])
+        .map((b) => buildBookKey(b.title, b.Authors || b.authors || []))
+        .filter((t) => t)
+    );
+  } catch (e) {
+    console.error("Books fetch error", e);
+    return new Set();
+  }
+}
+
+function buildBookKey(title, authors) {
+  const normTitle = String(title || "")
+    .trim()
+    .toLowerCase();
+  const normAuthors = Array.isArray(authors)
+    ? authors
+        .map((a) => (typeof a === "string" ? a : a.full_name || a.name || ""))
+        .map((a) => a.trim().toLowerCase())
+        .filter(Boolean)
+        .sort()
+        .join("|")
+    : "";
+  return `${normTitle}##${normAuthors}`;
+}
 
 async function addBookFromGoogle(book) {
   if (!book) return;
@@ -62,14 +217,17 @@ async function addBookFromGoogle(book) {
       }),
     });
     if (res && res.ok) {
-      alert("Kitap başarıyla eklendi!");
-    } else {
+      if (typeof loadBooks === "function") loadBooks();
+      if (typeof loadDashboardStats === "function") loadDashboardStats();
+      return true;
+    } else if (res) {
       const data = await res.json();
       alert(data.error || "Kitap eklenemedi.");
     }
   } catch (e) {
     alert("Kitap eklenirken hata oluştu.");
   }
+  return false;
 }
 const API_URL = "/api";
 
@@ -143,24 +301,22 @@ function setupLogoutButtons() {
   const logoutBtns = document.querySelectorAll(".fa-sign-out-alt");
   logoutBtns.forEach((icon) => {
     const link = icon.closest("a") || icon.closest("button");
-    if (link) {
-      link.onclick = (e) => {
-        e.preventDefault();
-        logout();
-      };
-    }
+    if (!link) return;
+    link.onclick = (e) => {
+      e.preventDefault();
+      logout();
+    };
   });
 }
 
 function setupSearchInputs() {
   const searchInputs = document.querySelectorAll(
-    'input[placeholder*="ara"], input[placeholder*="Ara"]'
+    "input[type='search'], .search-input"
   );
 
   searchInputs.forEach((input) => {
     if (input.id === "navbar-search") return;
-
-    input.addEventListener("keypress", function (e) {
+    input.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         const query = e.target.value.trim();

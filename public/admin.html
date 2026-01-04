@@ -255,17 +255,20 @@
     <div id="google-books-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
       <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto flex flex-col">
         <div class="flex justify-between items-center p-6 border-b">
-          <h3 class="text-xl font-bold text-gray-800">Google Books'ta Kitap Ara</h3>
+          <h3 class="text-xl font-bold text-gray-800">Google Books'tan Kitap Ekle</h3>
           <button onclick="closeGoogleBooksModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
         <div class="p-6 space-y-4">
           <div class="flex w-full max-w-lg mx-auto gap-2 justify-center">
             <input type="text" id="google-books-query" class="flex-1 border rounded px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="Kitap adı veya yazar...">
             <button id="google-books-search-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold flex items-center">
-              <i class="fas fa-plus mr-2"></i> Google Books'la Ekle
+              <i class="fas fa-search mr-2"></i> Ara
             </button>
           </div>
-
+          <div id="google-books-results" class="hidden border border-gray-200 rounded-lg divide-y divide-gray-100 bg-white shadow-sm">
+            <div class="p-3 text-sm text-gray-600" id="google-books-results-info">Sonuçlar burada listelenecek.</div>
+            <div id="google-books-list" class="max-h-80 overflow-y-auto"></div>
+          </div>
         </div>
       </div>
     </div>

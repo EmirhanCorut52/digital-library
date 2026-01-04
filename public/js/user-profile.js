@@ -377,6 +377,7 @@ async function followUser() {
         btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i> Takip Et';
       }
     }
+    window.location.reload();
   } catch (error) {
     alert("Takip işlemi sırasında hata oluştu.");
   }

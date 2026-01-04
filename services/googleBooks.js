@@ -11,40 +11,42 @@ exports.searchBooks = async (query, maxResults = 10) => {
       maxResults: maxResults,
       key: API_KEY,
       printType: "books",
-      langRestrict: "tr",
     };
 
     const response = await axios.get(API_URL, { params });
-    const items = response.data.items || [];
+    const items = (response.data.items || []).filter(
+      (item) => item?.volumeInfo?.language === "tr"
+    );
 
-    const mappedBooks = items.map((item) => {
-      const info = item.volumeInfo;
+    const mappedBooks = await Promise.all(
+      items.map(async (item) => {
+        const info = item.volumeInfo;
 
-      let coverImage = null;
-      if (info.imageLinks) {
-        coverImage = (
-          info.imageLinks.thumbnail ||
-          info.imageLinks.smallThumbnail ||
-          ""
-        ).replace("http://", "https://");
-      }
+        let coverImage = null;
+        if (info.imageLinks) {
+          coverImage = (
+            info.imageLinks.thumbnail ||
+            info.imageLinks.smallThumbnail ||
+            ""
+          ).replace("http://", "https://");
+        }
 
-      return {
-        google_id: item.id,
-        title: info.title || "İsimsiz Kitap",
-        authors: info.authors || [],
-        description: info.description || "",
-        publisher: info.publisher || "",
-        published_date: info.publishedDate || "",
-        page_count: info.pageCount || 0,
-        category: info.categories ? info.categories[0] : "Genel",
-        cover_image: coverImage,
-        isbn: info.industryIdentifiers
-          ? info.industryIdentifiers.find((id) => id.type === "ISBN_13")
-              ?.identifier
-          : null,
-      };
-    });
+        const rawCategory = info.categories ? info.categories[0] : null;
+        const category = formatCategory(rawCategory);
+
+        return {
+          google_id: item.id,
+          title: info.title || "İsimsiz Kitap",
+          authors: info.authors || [],
+          description: info.description || "",
+          publisher: info.publisher || "",
+          published_date: info.publishedDate || "",
+          page_count: info.pageCount || 0,
+          category: category,
+          cover_image: coverImage,
+        };
+      })
+    );
 
     return mappedBooks;
   } catch (error) {
@@ -52,3 +54,8 @@ exports.searchBooks = async (query, maxResults = 10) => {
     return [];
   }
 };
+
+function formatCategory(raw) {
+  if (!raw) return "Genel";
+  return String(raw).split("/")[0].trim();
+}

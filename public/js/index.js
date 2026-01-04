@@ -185,6 +185,17 @@ function getProfileInfo() {
     });
 }
 
+function escapeHtml(text) {
+  if (text == null) return "";
+  return text
+    .toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 async function getFeed() {
   const container = document.getElementById("feed-container");
   try {
