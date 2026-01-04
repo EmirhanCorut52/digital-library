@@ -109,7 +109,6 @@ function initGoogleBooksSearch() {
         addBtn.addEventListener("click", async () => {
           const key = addBtn.dataset.key || "";
 
-          // Güncel listeyi çek, durumu eşitle; zaten ekliyse işlem yapma
           existingKeys = await fetchExistingBookKeys();
           syncButtonStates(list, existingKeys);
           if (existingKeys.has(key)) {
@@ -123,7 +122,6 @@ function initGoogleBooksSearch() {
           existingKeys = await fetchExistingBookKeys();
           syncButtonStates(list, existingKeys);
           if (!ok) {
-            // Ekleme başarısızsa butonu yeniden aktif et
             setButtonState(addBtn, existingKeys);
           }
         });
@@ -157,8 +155,8 @@ function setButtonState(btn, existingKeys) {
   if (alreadyAdded) {
     btn.textContent = "Eklendi";
     btn.classList.add("bg-green-600", "opacity-80");
-    btn.disabled = true; // tıklanmasın
-    btn.style.pointerEvents = "none"; // hover/click etkileşimini kes
+    btn.disabled = true;
+    btn.style.pointerEvents = "none";
   } else {
     btn.textContent = "Ekle";
     btn.classList.add("bg-blue-600", "hover:bg-blue-700");

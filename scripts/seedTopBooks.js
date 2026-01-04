@@ -12,7 +12,6 @@ const PostComment = require("../models/PostComment");
 const Comment = require("../models/Comment");
 const Follow = require("../models/Follow");
 
-// Wire associations the same way server.js does
 const models = {
   User,
   Book,
@@ -103,7 +102,6 @@ async function main() {
   for (const entry of payload) {
     if (!entry?.title) continue;
 
-    // Best-effort cover fetch if missing
     if (!entry.cover_image) {
       entry.cover_image = await findCoverFromOpenLibrary(entry);
     }
