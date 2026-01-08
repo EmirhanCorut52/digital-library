@@ -69,5 +69,5 @@ function isLikelyTurkish(text) {
   if (!text) return false;
   const turkishChars = /[çğıöşüÇĞİÖŞÜ]/g;
   const matches = text.match(turkishChars) || [];
-  return matches.length >= 3; // simple heuristic
+  return matches.length >= 1;
 }

@@ -31,16 +31,28 @@ exports.register = async (req, res) => {
       return res.status(400).json({ error: usernameValidation.error });
     }
 
-    const existingUser = await User.findOne({
+    const existingEmail = await User.findOne({
       where: {
-        [Op.or]: [{ email: email }, { username: username }],
+        [Op.or]: [{ email: email }],
       },
     });
 
-    if (existingUser) {
+    if (existingEmail) {
       return res
         .status(400)
-        .json({ error: "Bu kullanıcı adı veya e-posta zaten kullanılıyor." });
+        .json({ error: "Bu e-posta zaten kullanılıyor." });
+    }
+
+    const existingUsername = await User.findOne({
+      where: {
+        [Op.or]: [{ username: username }],
+      },
+    });
+
+    if (existingUsername) {
+      return res
+        .status(400)
+        .json({ error: "Bu kullanıcı adı zaten kullanılıyor." });
     }
 
     const password_hash = await bcrypt.hash(password, 10);
@@ -73,7 +85,7 @@ exports.login = async (req, res) => {
         .json({ error: "Lütfen e-posta ve şifrenizi girin." });
     }
 
-    const user = await User.findOne({ where: { email: email } });
+    const user = await User.findOne({ where: { email } });
 
     if (!user) {
       return res.status(401).json({ error: "Geçersiz e-posta veya şifre." });
@@ -114,6 +126,13 @@ exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
+    if (!email) {
+      return res
+        .status(400)
+        .json({ error: "Lütfen e-postanızı girin." });
+    }
+
+
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
@@ -125,7 +144,7 @@ exports.forgotPassword = async (req, res) => {
     const resetToken = jwt.sign(
       { id: user.user_id, type: "reset" },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: process.env.RESET_JWT_TIMEOUT }
     );
 
     res.status(200).json({
@@ -221,7 +240,7 @@ exports.updateProfile = async (req, res) => {
     if (error.name === "SequelizeValidationError") {
       return res
         .status(400)
-        .json({ error: error.errors?.[0]?.message || "Geçersiz veri." });
+        .json({ error: "Geçersiz veri." });
     }
 
     console.error("Update profile error:", error);

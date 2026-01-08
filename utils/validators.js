@@ -43,14 +43,15 @@ exports.validateUsername = (username) => {
     };
   }
 
-  if (username.length > 50) {
+  if (username.length > 20) {
     return {
       isValid: false,
-      error: "Kullanıcı adı en fazla 50 karakter olabilir.",
+      error: "Kullanıcı adı en fazla 20 karakter olabilir.",
     };
   }
 
-  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+  const usernameRegex = /^[a-zA-Z0-9_]+$/;
+  if (!usernameRegex.test(username)) {
     return {
       isValid: false,
       error: "Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir.",

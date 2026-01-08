@@ -13,8 +13,8 @@ exports.getDashboardStats = async (req, res) => {
     const totalComments = await Comment.count();
 
     res.status(200).json({
-      books: totalBooks,
       users: totalUsers,
+      books: totalBooks,
       posts: totalPosts,
       comments: totalComments,
     });
