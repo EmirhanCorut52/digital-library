@@ -38,7 +38,3 @@ This project features a robust **RESTful API** backend built with Node.js and a 
 - **ORM:** Sequelize
 - **Authentication:** JSON Web Token (JWT)
 - **Frontend:** HTML5, Tailwind CSS, Vanilla JavaScript (Fetch API)
-
-## 🌐 Live Demo
-
-🔗 **[https://digital-library-production-0b33.up.railway.app/](https://digital-library-production-0b33.up.railway.app/)**
